@@ -5,7 +5,7 @@
   "license": "MIT",
   "scripts": {
     "prepare": "husky || true",
-    "playwright-install-browsers": "playwright install chromium",
+    "playwright-install-browsers": "playwright install chromium --with-deps",
     "start": "ng serve",
     "build": "ng build",
     "test": "ng test",
