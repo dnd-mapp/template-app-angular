@@ -1,4 +1,65 @@
 {
     "version": "2.0.0",
-    "tasks": []
+    "tasks": [
+        {
+            "type": "npm",
+            "script": "start",
+            "label": "start",
+            "detail": "ng serve",
+            "isBackground": true,
+            "problemMatcher": []
+        },
+        {
+            "type": "npm",
+            "script": "build",
+            "label": "build",
+            "detail": "ng build",
+            "group": { "kind": "build", "isDefault": true },
+            "problemMatcher": []
+        },
+        {
+            "type": "npm",
+            "script": "test",
+            "label": "test",
+            "detail": "ng test",
+            "isBackground": true,
+            "problemMatcher": []
+        },
+        {
+            "type": "npm",
+            "script": "test-ci",
+            "label": "test-ci",
+            "detail": "ng test -c ci",
+            "group": { "kind": "test", "isDefault": true },
+            "problemMatcher": []
+        },
+        {
+            "type": "npm",
+            "script": "playwright-install-browsers",
+            "label": "playwright-install-browsers",
+            "detail": "playwright install chromium",
+            "problemMatcher": []
+        },
+        {
+            "type": "npm",
+            "script": "format",
+            "label": "format",
+            "detail": "prettier -w .",
+            "problemMatcher": []
+        },
+        {
+            "type": "npm",
+            "script": "format-check",
+            "label": "format-check",
+            "detail": "prettier -l .",
+            "problemMatcher": []
+        },
+        {
+            "type": "npm",
+            "script": "lint-md",
+            "label": "lint-md",
+            "detail": "markdownlint-cli2",
+            "problemMatcher": []
+        }
+    ]
 }
