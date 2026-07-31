@@ -56,6 +56,13 @@
         },
         {
             "type": "npm",
+            "script": "lint-ts",
+            "label": "lint-ts",
+            "detail": "ng lint",
+            "problemMatcher": []
+        },
+        {
+            "type": "npm",
             "script": "lint-md",
             "label": "lint-md",
             "detail": "markdownlint-cli2",
