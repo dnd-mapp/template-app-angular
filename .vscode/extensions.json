@@ -1,3 +1,10 @@
 {
-    "recommendations": ["angular.ng-template"]
+    "recommendations": [
+        "angular.ng-template",
+        "esbenp.prettier-vscode",
+        "editorconfig.editorconfig",
+        "davidanson.vscode-markdownlint",
+        "vitest.explorer",
+        "ms-playwright.playwright"
+    ]
 }
