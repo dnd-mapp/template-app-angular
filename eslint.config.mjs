@@ -7,9 +7,13 @@ import tseslint from 'typescript-eslint';
 export default defineConfig([
     globalIgnores(['.angular/', 'coverage/', 'dist/', 'reports/']),
     {
+        files: ['**/*.mjs', '**/*.ts'],
+        extends: [eslint.configs.recommended],
+        rules: {},
+    },
+    {
         files: ['**/*.ts'],
         extends: [
-            eslint.configs.recommended,
             tseslint.configs.recommendedTypeChecked,
             tseslint.configs.stylisticTypeChecked,
             angular.configs.tsRecommended,
