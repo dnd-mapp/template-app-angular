@@ -25,10 +25,9 @@ runs:
           shell: bash
           run: pnpm lint-ts
 
-        #        TODO: Add Stylelint
-        #        - name: Run Stylelint
-        #          shell: bash
-        #          run: pnpm lint-css
+        - name: Run Stylelint
+          shell: bash
+          run: pnpm lint-css
 
         - name: Run Markdownlint
           shell: bash
