@@ -1,10 +1,11 @@
 import eslint from '@eslint/js';
 import angular from 'angular-eslint';
 import prettier from 'eslint-config-prettier';
-import { defineConfig } from 'eslint/config';
+import { defineConfig, globalIgnores } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 
 export default defineConfig([
+    globalIgnores(['.angular/', 'coverage/', 'dist/', 'reports/']),
     {
         files: ['**/*.ts'],
         extends: [
