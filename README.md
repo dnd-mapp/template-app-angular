@@ -35,7 +35,12 @@ Configure your editor to run Prettier on save, so files match this repo's `.pret
 
 - **WebStorm**: open Settings → Languages & Frameworks → JavaScript → Prettier, and check **Run on save**. WebStorm auto-detects the local `prettier` package and this repo's config.
 
-This repo also lints `.ts` and `.html` files with ESLint (`eslint.config.mjs`, via `angular-eslint`). In VS Code, install the recommended [ESLint extension](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) (also prompted via `.vscode/extensions.json`) to see lint errors inline. WebStorm auto-detects the local `eslint` package and this repo's config with no extra setup. Run `pnpm lint-ts` to check the whole project from the command line.
+This repo also lints `.ts` and `.html` files with ESLint (`eslint.config.mjs`, via `angular-eslint`). Configure your editor to surface lint errors inline, and optionally fix them on save:
+
+- **VS Code**: install the recommended [ESLint extension](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) (also prompted via `.vscode/extensions.json`). It picks up `eslint.config.mjs` automatically.
+- **WebStorm**: open Settings → Languages & Frameworks → JavaScript → Code Quality Tools → ESLint, select **Automatic ESLint configuration**, and check **Run eslint --fix on save**.
+
+Run `pnpm lint-ts` to check the whole project from the command line.
 
 ## Usage
 
