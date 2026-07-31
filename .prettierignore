@@ -1,0 +1,17 @@
+*
+
+!*/
+
+!*.yml
+!*.yaml
+!*.json
+
+node_modules/
+.husky/_/
+pnpm-lock.yaml
+
+.claude/worktrees/
+
+.idea/
+.vscode/*
+.vscode/extensions.json

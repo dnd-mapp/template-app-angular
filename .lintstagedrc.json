@@ -1,0 +1,4 @@
+{
+    "*.md": "markdownlint-cli2 --fix",
+    "*.{yml,yaml,json}": "prettier -w"
+}

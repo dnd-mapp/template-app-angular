@@ -1,0 +1,33 @@
+name: Pull request
+on:
+    pull_request:
+
+permissions:
+    contents: read
+    packages: read
+
+concurrency:
+    group: '${{ github.workflow }}-${{ github.ref }}'
+    cancel-in-progress: true
+
+jobs:
+    ci:
+        name: CI
+        runs-on: ubuntu-22.04
+        timeout-minutes: 5
+        steps:
+            - name: Checkout repo
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+              with:
+                  fetch-depth: 0
+                  persist-credentials: false
+
+            - name: Run CI checks
+              uses: ./.github/actions/ci
+
+            - name: Run Commitlint
+              shell: bash
+              env:
+                  BASE: ${{ github.event.pull_request.base.sha }}
+                  HEAD: ${{ github.event.pull_request.head.sha }}
+              run: pnpm commitlint --from "$BASE" --to "$HEAD" --verbose

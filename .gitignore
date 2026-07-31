@@ -1,0 +1,7 @@
+.idea/
+.vscode/*
+
+.claude/worktrees/
+
+node_modules/
+.husky/_/

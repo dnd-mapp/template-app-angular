@@ -1,0 +1,16 @@
+name: CI
+description: Runs CI checks
+
+runs:
+    using: composite
+    steps:
+        - name: Prepare workspace
+          uses: ./.github/actions/prepare-workspace
+
+        - name: Run Prettier
+          shell: bash
+          run: pnpm format-check
+
+        - name: Run Markdownlint
+          shell: bash
+          run: pnpm lint-md

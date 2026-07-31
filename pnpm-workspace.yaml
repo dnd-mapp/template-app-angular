@@ -1,0 +1,16 @@
+# Dependency Resolution
+minimumReleaseAge: 4320
+minimumReleaseAgeExclude:
+  - '@dnd-mapp/*'
+trustPolicy: no-downgrade
+trustPolicyIgnoreAfter: 4320
+
+# CLI Settings
+engineStrict: true
+pmOnFail: error
+
+# Build Settings
+allowBuilds: {}
+
+# Other Settings
+savePrefix: '~'
