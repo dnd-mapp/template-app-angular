@@ -37,7 +37,16 @@ Configure your editor to run Prettier on save, so files match this repo's `.pret
 
 This repo also lints `.ts` and `.html` files with ESLint (`eslint.config.mjs`, via `angular-eslint`). Configure your editor to surface lint errors inline, and optionally fix them on save:
 
-- **VS Code**: install the recommended [ESLint extension](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) (also prompted via `.vscode/extensions.json`). It picks up `eslint.config.mjs` automatically.
+- **VS Code**: install the recommended [ESLint extension](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) (also prompted via `.vscode/extensions.json`). It picks up `eslint.config.mjs` and shows lint errors inline automatically; to also fix them on save, add to your `settings.json`:
+
+  ```json
+  {
+      "editor.codeActionsOnSave": {
+          "source.fixAll.eslint": "explicit"
+      }
+  }
+  ```
+
 - **WebStorm**: open Settings → Languages & Frameworks → JavaScript → Code Quality Tools → ESLint, select **Automatic ESLint configuration**, and check **Run eslint --fix on save**.
 
 Run `pnpm lint-ts` to check the whole project from the command line.
