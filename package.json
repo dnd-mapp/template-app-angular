@@ -1,11 +1,15 @@
 {
-  "name": "project-template",
+  "name": "angular-app-template",
   "version": "0.0.0",
-  "description": "Template repository for bootstrapping new dnd-mapp repositories",
+  "description": "",
   "license": "MIT",
-  "type": "module",
   "scripts": {
     "prepare": "husky || true",
+    "playwright-install-browsers": "playwright install chromium",
+    "start": "ng serve",
+    "build": "ng build",
+    "test": "ng test",
+    "test-ci": "ng test -c ci",
     "lint-md": "markdownlint-cli2",
     "format": "prettier -w .",
     "format-check": "prettier -l ."
@@ -22,13 +26,33 @@
       "onFail": "error"
     }
   },
+  "dependencies": {
+    "@angular/cdk": "~22.0.6",
+    "@angular/common": "~22.0.8",
+    "@angular/compiler": "~22.0.8",
+    "@angular/core": "~22.0.8",
+    "@angular/forms": "~22.0.8",
+    "@angular/platform-browser": "~22.0.8",
+    "@angular/router": "~22.0.8",
+    "rxjs": "~7.8.0",
+    "tslib": "~2.8.1"
+  },
   "devDependencies": {
+    "@angular/build": "~22.0.8",
+    "@angular/cli": "~22.0.8",
+    "@angular/compiler-cli": "~22.0.8",
     "@commitlint/cli": "~21.2.1",
     "@commitlint/config-conventional": "~21.2.0",
+    "@vitest/browser-playwright": "~4.1.10",
+    "@vitest/coverage-v8": "~4.1.10",
+    "@vitest/ui": "~4.1.10",
     "husky": "~9.1.7",
     "lint-staged": "~17.2.0",
     "markdownlint-cli2": "~0.23.2",
+    "playwright": "~1.62.0",
     "prettier": "~3.9.6",
-    "prettier-plugin-organize-imports": "~4.3.0"
+    "prettier-plugin-organize-imports": "~4.3.0",
+    "typescript": "~6.0.3",
+    "vitest": "~4.1.10"
   }
 }

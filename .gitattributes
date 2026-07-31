@@ -4,5 +4,9 @@
 *.yml   text eol=lf
 *.yaml  text eol=lf
 *.json  text eol=lf
+*.html  text eol=lf
+*.scss  text eol=lf
+*.ts    text eol=lf
+*.pem   text eol=lf
 
 pnpm-lock.yaml text eol=lf linguist-generated

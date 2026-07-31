@@ -5,6 +5,9 @@
 !*.yml
 !*.yaml
 !*.json
+!*.html
+!*.scss
+!*.ts
 
 node_modules/
 .husky/_/
@@ -14,4 +17,6 @@ pnpm-lock.yaml
 
 .idea/
 .vscode/*
-.vscode/extensions.json
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
