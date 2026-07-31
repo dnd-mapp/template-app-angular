@@ -8,6 +8,7 @@
 !*.html
 !*.scss
 !*.ts
+!*.mjs
 
 node_modules/
 .husky/_/

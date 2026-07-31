@@ -8,6 +8,7 @@
 *.html          text eol=lf
 *.scss          text eol=lf
 *.ts            text eol=lf
+*.mjs           text eol=lf
 
 *.ico           binary
 

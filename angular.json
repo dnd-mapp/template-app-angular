@@ -3,7 +3,8 @@
     "version": 1,
     "cli": {
         "analytics": false,
-        "packageManager": "pnpm"
+        "packageManager": "pnpm",
+        "schematicCollections": ["angular-eslint"]
     },
     "schematics": {
         "@schematics/angular:component": {
@@ -151,6 +152,12 @@
                             ],
                             "watch": false
                         }
+                    }
+                },
+                "lint": {
+                    "builder": "@angular-eslint/builder:lint",
+                    "options": {
+                        "lintFilePatterns": ["src/**/*.ts", "src/**/*.html"]
                     }
                 }
             }

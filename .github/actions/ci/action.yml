@@ -21,11 +21,10 @@ runs:
           shell: bash
           run: pnpm format-check
 
-        #       TODO: Add ESLint
-        #        - name: Run ESLint
-        #          shell: bash
-        #          run: pnpm lint-ts
-        #
+        - name: Run ESLint
+          shell: bash
+          run: pnpm lint-ts
+
         #        TODO: Add Stylelint
         #        - name: Run Stylelint
         #          shell: bash
