@@ -1,4 +1,5 @@
 {
     "*.md": "markdownlint-cli2 --fix",
-    "*.{yml,yaml,json,html,scss,ts}": "prettier -w"
+    "*.{yml,yaml,json,html,scss}": "prettier -w",
+    "*.{mjs,ts}": ["prettier -w", "eslint --fix"]
 }
