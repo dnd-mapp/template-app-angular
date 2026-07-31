@@ -10,7 +10,11 @@ engineStrict: true
 pmOnFail: error
 
 # Build Settings
-allowBuilds: {}
+allowBuilds:
+  '@parcel/watcher': true
+  esbuild: true
+  lmdb: true
+  msgpackr-extract: true
 
 # Other Settings
 savePrefix: '~'

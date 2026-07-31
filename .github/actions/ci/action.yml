@@ -7,9 +7,29 @@ runs:
         - name: Prepare workspace
           uses: ./.github/actions/prepare-workspace
 
+        - name: Compile core
+          shell: bash
+          run: pnpm build
+
+        - name: Run tests
+          shell: bash
+          run: |
+              pnpm playwright-install-browsers
+              pnpm test-ci
+
         - name: Run Prettier
           shell: bash
           run: pnpm format-check
+
+        #       TODO: Add ESLint
+        #        - name: Run ESLint
+        #          shell: bash
+        #          run: pnpm lint-ts
+        #
+        #        TODO: Add Stylelint
+        #        - name: Run Stylelint
+        #          shell: bash
+        #          run: pnpm lint-css
 
         - name: Run Markdownlint
           shell: bash
