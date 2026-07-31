@@ -25,6 +25,7 @@ export default defineConfig([
             },
         },
         rules: {
+            '@typescript-eslint/no-unused-vars': 'off',
             '@angular-eslint/directive-selector': [
                 'error',
                 {
