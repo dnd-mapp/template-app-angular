@@ -51,6 +51,22 @@ This repo also lints `.ts` and `.html` files with ESLint (`eslint.config.mjs`, v
 
 Run `pnpm lint-ts` to check the whole project from the command line.
 
+This repo also lints `.scss` files with Stylelint (`.stylelintrc.json`), using `stylelint-config-standard-scss` and `stylelint-config-recess-order` to enforce a consistent property order. Configure your editor to surface lint errors inline, and optionally fix them on save:
+
+- **VS Code**: install the recommended [Stylelint extension](https://marketplace.visualstudio.com/items?itemName=stylelint.vscode-stylelint) (also prompted via `.vscode/extensions.json`). It picks up `.stylelintrc.json` and shows lint errors inline automatically; to also fix them on save, add to your `settings.json`:
+
+  ```json
+  {
+      "editor.codeActionsOnSave": {
+          "source.fixAll.stylelint": "explicit"
+      }
+  }
+  ```
+
+- **WebStorm**: open Settings → Languages & Frameworks → Style Sheets → Stylelint, check **Enable**, select **Automatic Stylelint configuration**, and check **Run Stylelint --fix on save**.
+
+Run `pnpm lint-css` to check the whole project from the command line.
+
 ## Usage
 
 ```bash
@@ -61,6 +77,7 @@ pnpm test-ci       # Run tests headless, as CI does
 pnpm format        # Format all files with Prettier
 pnpm format-check  # Check formatting without writing changes
 pnpm lint-ts       # Lint TypeScript and HTML files with ESLint
+pnpm lint-css      # Lint SCSS files with Stylelint
 pnpm lint-md       # Lint Markdown files with markdownlint-cli2
 ```
 
