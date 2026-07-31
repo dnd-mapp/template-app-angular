@@ -63,6 +63,13 @@
         },
         {
             "type": "npm",
+            "script": "lint-css",
+            "label": "lint-css",
+            "detail": "stylelint \"**/*.scss\"",
+            "problemMatcher": []
+        },
+        {
+            "type": "npm",
             "script": "lint-md",
             "label": "lint-md",
             "detail": "markdownlint-cli2",
