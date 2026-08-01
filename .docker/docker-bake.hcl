@@ -54,6 +54,8 @@
 #         password: ${{ secrets.GITHUB_TOKEN }}
 #
 #     - uses: docker/bake-action@v4
+#       env:
+#         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 #       with:
 #         files: |
 #           .docker/docker-bake.hcl
@@ -71,8 +73,8 @@ variable "IMAGE_NAME" {
     default = "angular-app-template"
 
     validation {
-        condition     = can(regex("^[a-z0-9]+([._-][a-z0-9]+)*(/[a-z0-9]+([._-][a-z0-9]+)*)*$", IMAGE_NAME))
-        error_message = "IMAGE_NAME must be a valid Docker image name."
+        condition     = can(regex("^([a-z0-9]+([.-][a-z0-9]+)*(:[0-9]+)?/)?[a-z0-9]+([._-][a-z0-9]+)*(/[a-z0-9]+([._-][a-z0-9]+)*)*$", IMAGE_NAME))
+        error_message = "IMAGE_NAME must be a valid Docker image name, optionally prefixed with a registry host[:port], e.g. \"localhost:5000/angular-app-template\"."
     }
 }
 

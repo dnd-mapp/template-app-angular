@@ -158,6 +158,8 @@ The container runs as the unprivileged `nginx` user and takes no runtime environ
       password: ${{ secrets.GITHUB_TOKEN }}
 
   - uses: docker/bake-action@v4
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     with:
       files: |
         .docker/docker-bake.hcl
