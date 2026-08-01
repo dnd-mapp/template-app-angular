@@ -115,14 +115,14 @@ The container runs as the unprivileged `nginx` user and takes no runtime environ
 
 [`.docker/docker-bake.hcl`](.docker/docker-bake.hcl) defines two targets. Run it from the repository root, the same as `docker build` above. The `IMAGE_NAME` and `IMAGE_TAG` variables control the image's tags; `IMAGE_TAG` accepts a comma-separated list to apply more than one tag in a single build, e.g. `latest,v1.2.3,sha-abc123`.
 
-- `local` (the default target): builds a single platform — whatever the builder runs on — with no attestations, and loads the result into the local Docker image store, for everyday local builds:
+- `local` (the default target): builds a single platform (whatever the builder runs on) with no attestations, and loads the result into the local Docker image store, for everyday local builds:
 
   ```bash
   export NPM_TOKEN=<personal access token with packages:read>
   IMAGE_NAME=<image-name> IMAGE_TAG=<tag>[,<tag>...] docker buildx bake -f .docker/docker-bake.hcl
   ```
 
-- `ci`: builds `linux/amd64` and `linux/arm64` together and attaches SBOM and provenance attestations, for use in CI/CD pipelines. It reads and writes its build cache through the GitHub Actions cache backend (`mode=max`, covering every layer of every build stage), which only works inside a GitHub Actions job — it needs the cache service URL and runtime token that `docker/setup-buildx-action` wires up automatically, so it needs no registry credentials of its own. It also needs a builder that supports multi-platform output and attestations, e.g. the default `docker-container` driver:
+- `ci`: builds `linux/amd64` and `linux/arm64` together and attaches SBOM and provenance attestations, for use in CI/CD pipelines. It reads and writes its build cache through the GitHub Actions cache backend (`mode=max`, covering every layer of every build stage), which only works inside a GitHub Actions job: it needs the cache service URL and runtime token that `docker/setup-buildx-action` wires up automatically, so it needs no registry credentials of its own. It also needs a builder that supports multi-platform output and attestations, e.g. the default `docker-container` driver:
 
   ```bash
   docker buildx create --use
