@@ -11,6 +11,12 @@ runs:
           shell: bash
           run: docker build --check --debug -f .docker/Dockerfile .
 
+        - name: Check docker-bake.hcl
+          shell: bash
+          run: |
+              docker buildx bake -f .docker/docker-bake.hcl --print
+              docker buildx bake -f .docker/docker-bake.hcl ci --print
+
         - name: Compile core
           shell: bash
           run: pnpm build

@@ -111,6 +111,63 @@ docker run -p 4000:4000 <image-name>
 
 The container runs as the unprivileged `nginx` user and takes no runtime environment variables or volumes. Everything it needs is baked in at build time.
 
+### Building with `docker buildx bake`
+
+[`.docker/docker-bake.hcl`](.docker/docker-bake.hcl) defines two targets. Run it from the repository root, the same as `docker build` above. The `IMAGE_NAME` and `IMAGE_TAG` variables control the image's tags; `IMAGE_TAG` accepts a comma-separated list to apply more than one tag in a single build, e.g. `latest,v1.2.3,sha-abc123`.
+
+- `local` (the default target): builds a single platform (whatever the builder runs on) with no attestations, and loads the result into the local Docker image store, for everyday local builds:
+
+  ```bash
+  export NPM_TOKEN=<personal access token with packages:read>
+  IMAGE_NAME=<image-name> IMAGE_TAG=<tag>[,<tag>...] docker buildx bake -f .docker/docker-bake.hcl
+  ```
+
+- `ci`: builds `linux/amd64` and `linux/arm64` together and attaches SBOM and provenance attestations, for use in CI/CD pipelines. It reads and writes its build cache through the GitHub Actions cache backend (`mode=max`, covering every layer of every build stage), which only works inside a GitHub Actions job: it needs the cache service URL and runtime token that `docker/setup-buildx-action` wires up automatically, so it needs no registry credentials of its own. It also needs a builder that supports multi-platform output and attestations, e.g. the default `docker-container` driver:
+
+  ```bash
+  docker buildx create --use
+  ```
+
+  That driver can't load a multi-platform image into the local image store, so building the `ci` target requires either pushing the result:
+
+  ```bash
+  export NPM_TOKEN=<personal access token with packages:read>
+  IMAGE_NAME=<registry>/<image-name> IMAGE_TAG=<tag>[,<tag>...] docker buildx bake -f .docker/docker-bake.hcl ci --push
+  ```
+
+  or exporting it to a multi-platform-aware format instead:
+
+  ```bash
+  docker buildx bake -f .docker/docker-bake.hcl ci --set ci.output=type=oci,dest=./image.tar
+  ```
+
+  The `ci` target inherits from an empty `docker-metadata-action` placeholder target, so it's compatible with [`docker/metadata-action`](https://github.com/docker/metadata-action): pass its generated bake file alongside this one to have its computed tags and OCI labels override `IMAGE_NAME`/`IMAGE_TAG`, e.g. via [`docker/bake-action`](https://github.com/docker/bake-action) in GitHub Actions:
+
+  ```yaml
+  - uses: docker/setup-buildx-action@v3
+
+  - uses: docker/metadata-action@v5
+    id: meta
+    with:
+      images: <registry>/<image-name>
+
+  - uses: docker/login-action@v3
+    with:
+      registry: <registry>
+      username: ${{ github.actor }}
+      password: ${{ secrets.GITHUB_TOKEN }}
+
+  - uses: docker/bake-action@v4
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+    with:
+      files: |
+        .docker/docker-bake.hcl
+        ${{ steps.meta.outputs.bake-file }}
+      targets: ci
+      push: true
+  ```
+
 ## Contributing
 
 See [Creating a Pull Request](https://wiki.dndmapp.nl.eu.org/development-conventions/creating-a-pull-request) for how to open a pull request in any `dnd-mapp` repository, and [Angular & TypeScript Conventions](https://wiki.dndmapp.nl.eu.org/development-conventions/angular-typescript) for this repo's coding conventions.
