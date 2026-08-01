@@ -9,10 +9,16 @@ WORKDIR /app
 
 FROM --platform="$BUILDPLATFORM" base AS dependencies
 
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 
-RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
-    pnpm install --frozen-lockfile
+RUN --mount=type=secret,id=npm_token,required=true \
+    --mount=type=cache,target=/root/.local/share/pnpm/store \
+    sh -c ' \
+        set -e; \
+        echo "//npm.pkg.github.com/:_authToken=$(cat /run/secrets/npm_token)" >> "$HOME/.npmrc"; \
+        pnpm install --frozen-lockfile; \
+        rm -f "$HOME/.npmrc" \
+    '
 
 
 FROM --platform="$BUILDPLATFORM" dependencies AS build
