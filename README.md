@@ -92,6 +92,25 @@ The dev server serves over HTTPS using the self-signed certificate in `.ssl/` an
 
 Husky and lint-staged run Prettier, ESLint, and markdownlint on staged files before each commit. GitHub Actions runs the build, tests, and formatting/linting checks on every pull request and on pushes to `main` (see `.github/workflows/`), and validates commit messages against [Conventional Commits](https://www.conventionalcommits.org/) via commitlint.
 
+## Docker
+
+[`.docker/Dockerfile`](.docker/Dockerfile) builds the app and serves it with nginx on port `4000`, matching the local dev server's port. Installing dependencies requires a GitHub Package Registry token with at least the `packages:read` permission to resolve any `@dnd-mapp/*` scoped packages. Forward it as a build secret, rather than an environment variable or `ARG`, so it never ends up baked into the image:
+
+```bash
+export NPM_TOKEN=<personal access token with packages:read>
+docker build --secret id=npm_token,env=NPM_TOKEN -f .docker/Dockerfile -t <image-name> .
+```
+
+The build fails immediately if `npm_token` isn't provided, even before any `@dnd-mapp/*` packages are added to `package.json`. In GitHub Actions, pass it via the `secrets` input of `docker/build-push-action` instead of `env`.
+
+Run the built image and open `http://localhost:4000`:
+
+```bash
+docker run -p 4000:4000 <image-name>
+```
+
+The container runs as the unprivileged `nginx` user and takes no runtime environment variables or volumes. Everything it needs is baked in at build time.
+
 ## Contributing
 
 See [Creating a Pull Request](https://wiki.dndmapp.nl.eu.org/development-conventions/creating-a-pull-request) for how to open a pull request in any `dnd-mapp` repository, and [Angular & TypeScript Conventions](https://wiki.dndmapp.nl.eu.org/development-conventions/angular-typescript) for this repo's coding conventions.

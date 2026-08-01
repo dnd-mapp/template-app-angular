@@ -7,6 +7,10 @@ runs:
         - name: Prepare workspace
           uses: ./.github/actions/prepare-workspace
 
+        - name: Check Dockerfile
+          shell: bash
+          run: docker build --check --debug -f .docker/Dockerfile .
+
         - name: Compile core
           shell: bash
           run: pnpm build
