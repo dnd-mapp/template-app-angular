@@ -16,4 +16,5 @@ reports/
 
 *.md
 .docker/Dockerfile
+.docker/docker-bake.hcl
 .dockerignore
