@@ -69,24 +69,12 @@ jobs:
 
                   echo "number=$number" >> "$GITHUB_OUTPUT"
 
-            - name: Determine PR base commit
-              id: base
-              if: steps.pr.outputs.number != ''
-              shell: bash
-              env:
-                  GH_TOKEN: ${{ steps.app-token.outputs.token }}
-                  REPO: ${{ github.repository }}
-                  NUMBER: ${{ steps.pr.outputs.number }}
-              run: |
-                  sha=$(gh api "repos/${REPO}/pulls/${NUMBER}" --jq '.base.sha')
-                  echo "sha=$sha" >> "$GITHUB_OUTPUT"
-
             - name: Check whether PR-${{ steps.pr.outputs.number }} changed Docker-relevant paths
               id: changes
               if: steps.pr.outputs.number != ''
               uses: ./.github/actions/detect-docker-changes
               with:
-                  base: ${{ steps.base.outputs.sha }}
+                  base: ${{ github.event.before }}
                   ref: ${{ github.sha }}
 
             - name: Find image tagged pr-${{ steps.pr.outputs.number }}
