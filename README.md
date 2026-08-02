@@ -143,6 +143,15 @@ The container runs as the unprivileged `nginx` user and takes no runtime environ
 
   The `ci` target inherits from an empty `docker-metadata-action` placeholder target, so it's compatible with [`docker/metadata-action`](https://github.com/docker/metadata-action): pass its generated bake file alongside this one to have its computed tags and OCI labels override `IMAGE_NAME`/`IMAGE_TAG`, e.g. via [`docker/bake-action`](https://github.com/docker/bake-action) in GitHub Actions. See [`.github/workflows/pull-request.yml`](.github/workflows/pull-request.yml) for how this repository builds and pushes images to GHCR in CI.
 
+### Image lifecycle in CI
+
+Pull requests that touch relevant paths get an image built and pushed to GHCR, tagged `pr-<N>`. What happens to that tag next depends on how the pull request is resolved:
+
+- **Merged**: [`.github/workflows/push-main.yml`](.github/workflows/push-main.yml) checks whether a `pr-<N>` image was built for the merged pull request. If so, it retags the image `next` and removes the `pr-<N>` tag.
+- **Closed without merging**: [`.github/workflows/pull-request-closed.yml`](.github/workflows/pull-request-closed.yml) removes the `pr-<N>` tag, if one exists.
+
+Pull `ghcr.io/<owner>/<repo>:next` to run the latest image built from `main`.
+
 ## Contributing
 
 See [Creating a Pull Request](https://wiki.dndmapp.nl.eu.org/development-conventions/creating-a-pull-request) for how to open a pull request in any `dnd-mapp` repository, and [Angular & TypeScript Conventions](https://wiki.dndmapp.nl.eu.org/development-conventions/angular-typescript) for this repo's coding conventions.

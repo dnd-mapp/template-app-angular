@@ -1,0 +1,49 @@
+name: Find image version
+description: Looks up a GHCR container package version by tag
+
+inputs:
+    owner:
+        description: Owner of the GHCR package (org or user)
+        required: true
+    package:
+        description: Name of the GHCR package
+        required: true
+    tag:
+        description: Tag to look up
+        required: true
+    token:
+        description: Token with packages:read access, used to query the GHCR API
+        required: true
+
+outputs:
+    exists:
+        description: Whether a version tagged with the given tag was found
+        value: ${{ steps.find.outputs.exists }}
+    version-id:
+        description: The id of the matching package version, if found
+        value: ${{ steps.find.outputs.version-id }}
+
+runs:
+    using: composite
+    steps:
+        - name: Find version tagged ${{ inputs.tag }}
+          id: find
+          shell: bash
+          env:
+              GH_TOKEN: ${{ inputs.token }}
+              OWNER: ${{ inputs.owner }}
+              PACKAGE: ${{ inputs.package }}
+              TAG: ${{ inputs.tag }}
+          run: |
+              version_id=$(gh api --paginate "/orgs/${OWNER}/packages/container/${PACKAGE}/versions" \
+                  --jq ".[] | select(.metadata.container.tags[]? == \"${TAG}\") | .id" | head -n1)
+
+              if [ -z "$version_id" ]; then
+                  echo "No image tagged ${TAG} found."
+                  echo "exists=false" >> "$GITHUB_OUTPUT"
+              else
+                  echo "Found image tagged ${TAG} (version ${version_id})."
+                  echo "exists=true" >> "$GITHUB_OUTPUT"
+              fi
+
+              echo "version-id=$version_id" >> "$GITHUB_OUTPUT"

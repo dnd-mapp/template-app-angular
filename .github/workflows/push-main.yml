@@ -4,10 +4,6 @@ on:
         branches:
             - main
 
-permissions:
-    contents: read
-    packages: read
-
 concurrency:
     group: '${{ github.workflow }}-${{ github.ref }}'
     cancel-in-progress: false
@@ -17,6 +13,9 @@ jobs:
         name: CI
         runs-on: ubuntu-22.04
         timeout-minutes: 5
+        permissions:
+            contents: read
+            packages: read
         steps:
             - name: Checkout repo
               uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -25,3 +24,105 @@ jobs:
 
             - name: Run CI checks
               uses: ./.github/actions/ci
+
+    check-image:
+        name: Check for PR Docker image
+        runs-on: ubuntu-22.04
+        timeout-minutes: 5
+        permissions:
+            contents: read
+        outputs:
+            exists: ${{ steps.find.outputs.exists }}
+            pr-number: ${{ steps.pr.outputs.number }}
+        steps:
+            - name: Checkout repo
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+              with:
+                  persist-credentials: false
+
+            - name: Create GitHub App token
+              id: app-token
+              uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+              with:
+                  client-id: ${{ secrets.GH_APP_CLIENT_ID }}
+                  private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+                  owner: ${{ github.repository_owner }}
+                  permission-pull-requests: read
+                  permission-packages: read
+
+            - name: Determine merged PR number
+              id: pr
+              shell: bash
+              env:
+                  GH_TOKEN: ${{ steps.app-token.outputs.token }}
+                  REPO: ${{ github.repository }}
+                  SHA: ${{ github.sha }}
+              run: |
+                  number=$(gh api "repos/${REPO}/commits/${SHA}/pulls" --jq '.[0].number // empty')
+
+                  if [ -z "$number" ]; then
+                      echo "No pull request associated with ${SHA}."
+                  else
+                      echo "Commit ${SHA} was merged from PR #${number}."
+                  fi
+
+                  echo "number=$number" >> "$GITHUB_OUTPUT"
+
+            - name: Find image tagged pr-${{ steps.pr.outputs.number }}
+              id: find
+              if: steps.pr.outputs.number != ''
+              uses: ./.github/actions/find-image-version
+              with:
+                  owner: ${{ github.repository_owner }}
+                  package: ${{ github.event.repository.name }}
+                  tag: pr-${{ steps.pr.outputs.number }}
+                  token: ${{ steps.app-token.outputs.token }}
+
+    promote-image:
+        name: Promote Docker image to next
+        needs: [ci, check-image]
+        if: needs.check-image.outputs.exists == 'true'
+        runs-on: ubuntu-22.04
+        timeout-minutes: 5
+        permissions:
+            contents: read
+            packages: write
+        steps:
+            - name: Checkout repo
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+              with:
+                  persist-credentials: false
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+
+            - name: Log in to GHCR
+              uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+              with:
+                  registry: ghcr.io
+                  username: ${{ github.actor }}
+                  password: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Tag image as next
+              shell: bash
+              env:
+                  IMAGE: ghcr.io/${{ github.repository }}
+                  TAG: pr-${{ needs.check-image.outputs.pr-number }}
+              run: docker buildx imagetools create --tag "${IMAGE}:next" "${IMAGE}:${TAG}"
+
+            - name: Create GitHub App token
+              id: app-token
+              uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+              with:
+                  client-id: ${{ secrets.GH_APP_CLIENT_ID }}
+                  private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+                  owner: ${{ github.repository_owner }}
+                  permission-packages: write
+
+            - name: Remove pr-${{ needs.check-image.outputs.pr-number }} image
+              uses: ./.github/actions/remove-image
+              with:
+                  owner: ${{ github.repository_owner }}
+                  package: ${{ github.event.repository.name }}
+                  tag: pr-${{ needs.check-image.outputs.pr-number }}
+                  token: ${{ steps.app-token.outputs.token }}

@@ -96,6 +96,7 @@ jobs:
                   client-id: ${{ secrets.GH_APP_CLIENT_ID }}
                   private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
                   owner: ${{ github.repository_owner }}
+                  permission-packages: read
 
             - name: Build and push image
               uses: docker/bake-action@d3418bd7d0e9324001bca92fa8ba175ea7e6dc9b # v7.3.0
