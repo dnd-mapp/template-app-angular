@@ -36,26 +36,19 @@ jobs:
         runs-on: ubuntu-22.04
         timeout-minutes: 2
         permissions:
+            contents: read
             pull-requests: read
         outputs:
             docker: ${{ steps.filter.outputs.docker }}
         steps:
+            - name: Checkout repo
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+              with:
+                  persist-credentials: false
+
             - name: Check for relevant changes
               id: filter
-              uses: dorny/paths-filter@7b450fff21473bca461d4b92ce414b9d0420d706 # v4.0.2
-              with:
-                  filters: |
-                      docker:
-                          - 'src/**'
-                          - 'public/**'
-                          - '.docker/**'
-                          - '.dockerignore'
-                          - 'package.json'
-                          - 'pnpm-lock.yaml'
-                          - 'pnpm-workspace.yaml'
-                          - '.npmrc'
-                          - 'angular.json'
-                          - 'tsconfig*.json'
+              uses: ./.github/actions/detect-docker-changes
 
     docker:
         name: Build and push Docker image

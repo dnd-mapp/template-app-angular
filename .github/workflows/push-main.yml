@@ -81,27 +81,13 @@ jobs:
                   sha=$(gh api "repos/${REPO}/pulls/${NUMBER}" --jq '.base.sha')
                   echo "sha=$sha" >> "$GITHUB_OUTPUT"
 
-            # Keep this filter in sync with the `changes` job in pull-request.yml - both
-            # must agree on which paths affect the built Docker image.
             - name: Check whether PR-${{ steps.pr.outputs.number }} changed Docker-relevant paths
               id: changes
               if: steps.pr.outputs.number != ''
-              uses: dorny/paths-filter@7b450fff21473bca461d4b92ce414b9d0420d706 # v4.0.2
+              uses: ./.github/actions/detect-docker-changes
               with:
                   base: ${{ steps.base.outputs.sha }}
                   ref: ${{ github.sha }}
-                  filters: |
-                      docker:
-                          - 'src/**'
-                          - 'public/**'
-                          - '.docker/**'
-                          - '.dockerignore'
-                          - 'package.json'
-                          - 'pnpm-lock.yaml'
-                          - 'pnpm-workspace.yaml'
-                          - '.npmrc'
-                          - 'angular.json'
-                          - 'tsconfig*.json'
 
             - name: Find image tagged pr-${{ steps.pr.outputs.number }}
               id: find
