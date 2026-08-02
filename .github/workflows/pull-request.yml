@@ -33,7 +33,6 @@ jobs:
 
     changes:
         name: Detect changes
-        needs: ci
         runs-on: ubuntu-22.04
         timeout-minutes: 2
         permissions:
@@ -60,7 +59,7 @@ jobs:
 
     docker:
         name: Build and push Docker image
-        needs: changes
+        needs: [ci, changes]
         if: needs.changes.outputs.docker == 'true'
         runs-on: ubuntu-22.04
         timeout-minutes: 15
