@@ -36,6 +36,37 @@ runs:
               PACKAGE: ${{ inputs.package }}
               TAG: ${{ inputs.tag }}
               VERSION_ID: ${{ steps.find.outputs.version-id }}
+              TAGS: ${{ steps.find.outputs.tags }}
           run: |
-              gh api --method DELETE "/orgs/${OWNER}/packages/container/${PACKAGE}/versions/${VERSION_ID}"
-              echo "Deleted ${PACKAGE}:${TAG} (version ${VERSION_ID})"
+              # A GHCR package version can carry more than one tag (e.g. a PR image
+              # promoted to `next` keeps the `pr-N` tag on the same version). The API
+              # can only delete a whole version, taking every tag on it down with it,
+              # so refuse to delete when the version is still shared with other tags.
+              other_tags=$(echo "$TAGS" | jq -r --arg t "$TAG" '[.[] | select(. != $t)] | join(", ")')
+
+              if [ -n "$other_tags" ]; then
+                  echo "Not deleting ${PACKAGE}:${TAG} (version ${VERSION_ID}): also tagged ${other_tags}, deleting the version would remove those tags too."
+                  exit 0
+              fi
+
+              err_file=$(mktemp)
+
+              if gh api --method DELETE "/orgs/${OWNER}/packages/container/${PACKAGE}/versions/${VERSION_ID}" 2>"$err_file"; then
+                  echo "Deleted ${PACKAGE}:${TAG} (version ${VERSION_ID})"
+                  rm -f "$err_file"
+                  exit 0
+              fi
+
+              # GHCR refuses to delete the only tagged version of a package via the
+              # versions endpoint; the package itself has to be deleted instead.
+              if grep -qi "cannot delete the last tagged version" "$err_file"; then
+                  cat "$err_file" >&2
+                  rm -f "$err_file"
+                  gh api --method DELETE "/orgs/${OWNER}/packages/container/${PACKAGE}"
+                  echo "Deleted package ${PACKAGE} (last remaining tag was ${TAG}, version ${VERSION_ID})"
+                  exit 0
+              fi
+
+              cat "$err_file" >&2
+              rm -f "$err_file"
+              exit 1
