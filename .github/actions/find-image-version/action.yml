@@ -22,6 +22,9 @@ outputs:
     version-id:
         description: The id of the matching package version, if found
         value: ${{ steps.find.outputs.version-id }}
+    tags:
+        description: JSON array of all tags on the matching package version, if found
+        value: ${{ steps.find.outputs.tags }}
 
 runs:
     using: composite
@@ -45,6 +48,7 @@ runs:
                       echo "No package named ${PACKAGE} found (no image has been published yet)."
                       echo "exists=false" >> "$GITHUB_OUTPUT"
                       echo "version-id=" >> "$GITHUB_OUTPUT"
+                      echo "tags=[]" >> "$GITHUB_OUTPUT"
                       rm -f "$err_file"
                       exit 0
                   fi
@@ -56,14 +60,18 @@ runs:
 
               rm -f "$err_file"
 
-              version_id=$(echo "$versions_json" | jq -r ".[] | select(.metadata.container.tags[]? == \"${TAG}\") | .id" | head -n1)
+              version_json=$(echo "$versions_json" | jq -c ".[] | select(.metadata.container.tags[]? == \"${TAG}\")" | head -n1)
 
-              if [ -z "$version_id" ]; then
+              if [ -z "$version_json" ]; then
                   echo "No image tagged ${TAG} found."
                   echo "exists=false" >> "$GITHUB_OUTPUT"
+                  echo "version-id=" >> "$GITHUB_OUTPUT"
+                  echo "tags=[]" >> "$GITHUB_OUTPUT"
               else
-                  echo "Found image tagged ${TAG} (version ${version_id})."
+                  version_id=$(echo "$version_json" | jq -r ".id")
+                  tags=$(echo "$version_json" | jq -c ".metadata.container.tags")
+                  echo "Found image tagged ${TAG} (version ${version_id}, tags: ${tags})."
                   echo "exists=true" >> "$GITHUB_OUTPUT"
+                  echo "version-id=$version_id" >> "$GITHUB_OUTPUT"
+                  echo "tags=$tags" >> "$GITHUB_OUTPUT"
               fi
-
-              echo "version-id=$version_id" >> "$GITHUB_OUTPUT"
