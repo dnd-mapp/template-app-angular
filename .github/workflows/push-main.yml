@@ -125,20 +125,3 @@ jobs:
                   IMAGE: ghcr.io/${{ github.repository }}
                   TAG: pr-${{ needs.check-image.outputs.pr-number }}
               run: docker buildx imagetools create --tag "${IMAGE}:next" "${IMAGE}:${TAG}"
-
-            - name: Create GitHub App token
-              id: app-token
-              uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
-              with:
-                  client-id: ${{ secrets.GH_APP_CLIENT_ID }}
-                  private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
-                  owner: ${{ github.repository_owner }}
-                  permission-packages: write
-
-            - name: Remove pr-${{ needs.check-image.outputs.pr-number }} image
-              uses: ./.github/actions/remove-image
-              with:
-                  owner: ${{ github.repository_owner }}
-                  package: ${{ github.event.repository.name }}
-                  tag: pr-${{ needs.check-image.outputs.pr-number }}
-                  token: ${{ steps.app-token.outputs.token }}
