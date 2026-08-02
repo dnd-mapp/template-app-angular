@@ -80,7 +80,7 @@ jobs:
 
     promote-image:
         name: Promote Docker image to next
-        needs: check-image
+        needs: [ci, check-image]
         if: needs.check-image.outputs.exists == 'true'
         runs-on: ubuntu-22.04
         timeout-minutes: 5
