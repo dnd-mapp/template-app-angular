@@ -1,0 +1,37 @@
+name: Detect Docker-relevant changes
+description: Determines whether any changes affecting the built Docker image occurred between base and ref
+
+inputs:
+    base:
+        description: Git ref or SHA to diff against. Defaults to the pull request base when omitted.
+        required: false
+    ref:
+        description: Git ref or SHA to diff. Defaults to the pull request head when omitted.
+        required: false
+
+outputs:
+    docker:
+        description: Whether Docker-relevant paths changed
+        value: ${{ steps.filter.outputs.docker }}
+
+runs:
+    using: composite
+    steps:
+        - name: Check for relevant changes
+          id: filter
+          uses: dorny/paths-filter@7b450fff21473bca461d4b92ce414b9d0420d706 # v4.0.2
+          with:
+              base: ${{ inputs.base }}
+              ref: ${{ inputs.ref }}
+              filters: |
+                  docker:
+                      - 'src/**'
+                      - 'public/**'
+                      - '.docker/**'
+                      - '.dockerignore'
+                      - 'package.json'
+                      - 'pnpm-lock.yaml'
+                      - 'pnpm-workspace.yaml'
+                      - '.npmrc'
+                      - 'angular.json'
+                      - 'tsconfig*.json'

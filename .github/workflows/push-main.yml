@@ -38,6 +38,7 @@ jobs:
             - name: Checkout repo
               uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
+                  fetch-depth: 0
                   persist-credentials: false
 
             - name: Create GitHub App token
@@ -68,6 +69,14 @@ jobs:
 
                   echo "number=$number" >> "$GITHUB_OUTPUT"
 
+            - name: Check whether PR-${{ steps.pr.outputs.number }} changed Docker-relevant paths
+              id: changes
+              if: steps.pr.outputs.number != ''
+              uses: ./.github/actions/detect-docker-changes
+              with:
+                  base: ${{ github.event.before }}
+                  ref: ${{ github.sha }}
+
             - name: Find image tagged pr-${{ steps.pr.outputs.number }}
               id: find
               if: steps.pr.outputs.number != ''
@@ -77,6 +86,13 @@ jobs:
                   package: ${{ github.event.repository.name }}
                   tag: pr-${{ steps.pr.outputs.number }}
                   token: ${{ steps.app-token.outputs.token }}
+
+            - name: Fail if an expected image is missing
+              if: steps.changes.outputs.docker == 'true' && steps.find.outputs.exists != 'true'
+              shell: bash
+              run: |
+                  echo "PR #${{ steps.pr.outputs.number }} changed Docker-relevant paths, but no image tagged pr-${{ steps.pr.outputs.number }} was found in GHCR." >&2
+                  exit 1
 
     promote-image:
         name: Promote Docker image to next

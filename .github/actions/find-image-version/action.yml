@@ -35,8 +35,28 @@ runs:
               PACKAGE: ${{ inputs.package }}
               TAG: ${{ inputs.tag }}
           run: |
-              version_id=$(gh api --paginate "/orgs/${OWNER}/packages/container/${PACKAGE}/versions" \
-                  --jq ".[] | select(.metadata.container.tags[]? == \"${TAG}\") | .id" | head -n1)
+              err_file=$(mktemp)
+
+              if ! versions_json=$(gh api --paginate "/orgs/${OWNER}/packages/container/${PACKAGE}/versions" 2>"$err_file"); then
+                  # GHCR returns a 404 for the whole package once it has no versions left
+                  # (e.g. every previously published tag has since been removed), which is
+                  # indistinguishable from "no image tagged ${TAG} was ever published".
+                  if grep -q "HTTP 404" "$err_file"; then
+                      echo "No package named ${PACKAGE} found (no image has been published yet)."
+                      echo "exists=false" >> "$GITHUB_OUTPUT"
+                      echo "version-id=" >> "$GITHUB_OUTPUT"
+                      rm -f "$err_file"
+                      exit 0
+                  fi
+
+                  cat "$err_file" >&2
+                  rm -f "$err_file"
+                  exit 1
+              fi
+
+              rm -f "$err_file"
+
+              version_id=$(echo "$versions_json" | jq -r ".[] | select(.metadata.container.tags[]? == \"${TAG}\") | .id" | head -n1)
 
               if [ -z "$version_id" ]; then
                   echo "No image tagged ${TAG} found."
