@@ -141,32 +141,7 @@ The container runs as the unprivileged `nginx` user and takes no runtime environ
   docker buildx bake -f .docker/docker-bake.hcl ci --set ci.output=type=oci,dest=./image.tar
   ```
 
-  The `ci` target inherits from an empty `docker-metadata-action` placeholder target, so it's compatible with [`docker/metadata-action`](https://github.com/docker/metadata-action): pass its generated bake file alongside this one to have its computed tags and OCI labels override `IMAGE_NAME`/`IMAGE_TAG`, e.g. via [`docker/bake-action`](https://github.com/docker/bake-action) in GitHub Actions:
-
-  ```yaml
-  - uses: docker/setup-buildx-action@v3
-
-  - uses: docker/metadata-action@v5
-    id: meta
-    with:
-      images: <registry>/<image-name>
-
-  - uses: docker/login-action@v3
-    with:
-      registry: <registry>
-      username: ${{ github.actor }}
-      password: ${{ secrets.GITHUB_TOKEN }}
-
-  - uses: docker/bake-action@v4
-    env:
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-    with:
-      files: |
-        .docker/docker-bake.hcl
-        ${{ steps.meta.outputs.bake-file }}
-      targets: ci
-      push: true
-  ```
+  The `ci` target inherits from an empty `docker-metadata-action` placeholder target, so it's compatible with [`docker/metadata-action`](https://github.com/docker/metadata-action): pass its generated bake file alongside this one to have its computed tags and OCI labels override `IMAGE_NAME`/`IMAGE_TAG`, e.g. via [`docker/bake-action`](https://github.com/docker/bake-action) in GitHub Actions. See [`.github/workflows/pull-request.yml`](.github/workflows/pull-request.yml) for how this repository builds and pushes images to GHCR in CI.
 
 ## Contributing
 
