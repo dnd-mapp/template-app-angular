@@ -1,0 +1,41 @@
+name: Remove image
+description: Deletes a GHCR container package version by tag, if it exists
+
+inputs:
+    owner:
+        description: Owner of the GHCR package (org or user)
+        required: true
+    package:
+        description: Name of the GHCR package
+        required: true
+    tag:
+        description: Tag to remove
+        required: true
+    token:
+        description: Token with packages:write access, used to query and modify the GHCR API
+        required: true
+
+runs:
+    using: composite
+    steps:
+        - name: Find version tagged ${{ inputs.tag }}
+          id: find
+          uses: ./.github/actions/find-image-version
+          with:
+              owner: ${{ inputs.owner }}
+              package: ${{ inputs.package }}
+              tag: ${{ inputs.tag }}
+              token: ${{ inputs.token }}
+
+        - name: Delete ${{ inputs.package }}:${{ inputs.tag }}
+          if: steps.find.outputs.exists == 'true'
+          shell: bash
+          env:
+              GH_TOKEN: ${{ inputs.token }}
+              OWNER: ${{ inputs.owner }}
+              PACKAGE: ${{ inputs.package }}
+              TAG: ${{ inputs.tag }}
+              VERSION_ID: ${{ steps.find.outputs.version-id }}
+          run: |
+              gh api --method DELETE "/orgs/${OWNER}/packages/container/${PACKAGE}/versions/${VERSION_ID}"
+              echo "Deleted ${PACKAGE}:${TAG} (version ${VERSION_ID})"
