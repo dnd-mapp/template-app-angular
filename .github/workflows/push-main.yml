@@ -86,6 +86,7 @@ jobs:
         timeout-minutes: 5
         permissions:
             contents: read
+            packages: write
         steps:
             - name: Checkout repo
               uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -95,6 +96,20 @@ jobs:
             - name: Set up Docker Buildx
               uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
 
+            - name: Log in to GHCR
+              uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+              with:
+                  registry: ghcr.io
+                  username: ${{ github.actor }}
+                  password: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Tag image as next
+              shell: bash
+              env:
+                  IMAGE: ghcr.io/${{ github.repository }}
+                  TAG: pr-${{ needs.check-image.outputs.pr-number }}
+              run: docker buildx imagetools create --tag "${IMAGE}:next" "${IMAGE}:${TAG}"
+
             - name: Create GitHub App token
               id: app-token
               uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
@@ -103,20 +118,6 @@ jobs:
                   private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
                   owner: ${{ github.repository_owner }}
                   permission-packages: write
-
-            - name: Log in to GHCR
-              uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
-              with:
-                  registry: ghcr.io
-                  username: ${{ github.actor }}
-                  password: ${{ steps.app-token.outputs.token }}
-
-            - name: Tag image as next
-              shell: bash
-              env:
-                  IMAGE: ghcr.io/${{ github.repository }}
-                  TAG: pr-${{ needs.check-image.outputs.pr-number }}
-              run: docker buildx imagetools create --tag "${IMAGE}:next" "${IMAGE}:${TAG}"
 
             - name: Remove pr-${{ needs.check-image.outputs.pr-number }} image
               uses: ./.github/actions/remove-image
