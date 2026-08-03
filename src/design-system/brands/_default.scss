@@ -1,0 +1,82 @@
+@use "sass:map";
+@use "../primitives/color" as color;
+@use "../primitives/spacing" as spacing;
+@use "../primitives/typography" as typography;
+
+$shared-tokens: (
+    "space-xs": map.get(spacing.$spacing-scale, 100),
+    "space-sm": map.get(spacing.$spacing-scale, 200),
+    "space-md": map.get(spacing.$spacing-scale, 300),
+    "space-lg": map.get(spacing.$spacing-scale, 400),
+    "space-xl": map.get(spacing.$spacing-scale, 500),
+    "font-size-heading-1": map.get(typography.$font-size-scale, 600),
+    "line-height-heading-1": map.get(typography.$line-height-scale, 100),
+    "font-weight-heading-1": map.get(typography.$font-weight-scale, 300),
+    "font-size-heading-2": map.get(typography.$font-size-scale, 500),
+    "line-height-heading-2": map.get(typography.$line-height-scale, 100),
+    "font-weight-heading-2": map.get(typography.$font-weight-scale, 200),
+    "font-size-body": map.get(typography.$font-size-scale, 300),
+    "line-height-body": map.get(typography.$line-height-scale, 300),
+    "font-weight-body": map.get(typography.$font-weight-scale, 100),
+    "font-size-caption": map.get(typography.$font-size-scale, 100),
+    "line-height-caption": map.get(typography.$line-height-scale, 200),
+    "font-weight-caption": map.get(typography.$font-weight-scale, 100),
+    "font-size-label": map.get(typography.$font-size-scale, 200),
+    "line-height-label": map.get(typography.$line-height-scale, 200),
+    "font-weight-label": map.get(typography.$font-weight-scale, 200),
+    "font-family-base": "Roboto, sans-serif",
+);
+
+// $light-color
+$light-color: (
+    "color-surface": map.get(color.$color-neutral, 0),
+    "color-accent": map.get(color.$color-accent, 500),
+    "color-text-primary-on-surface": map.get(color.$color-neutral, 900),
+    "color-text-secondary-on-surface": map.get(color.$color-neutral, 700),
+    "color-border-on-surface": map.get(color.$color-neutral, 300),
+    "color-icon-on-surface": map.get(color.$color-neutral, 700),
+    "color-text-primary-on-accent": map.get(color.$color-neutral, 0),
+    "color-text-secondary-on-accent": map.get(color.$color-neutral, 100),
+    "color-border-on-accent": map.get(color.$color-accent, 900),
+    "color-icon-on-accent": map.get(color.$color-neutral, 0),
+);
+
+// $dark-color
+$dark-color: (
+    "color-surface": map.get(color.$color-neutral, 900),
+    "color-accent": map.get(color.$color-accent, 300),
+    "color-text-primary-on-surface": map.get(color.$color-neutral, 0),
+    "color-text-secondary-on-surface": map.get(color.$color-neutral, 300),
+    "color-border-on-surface": map.get(color.$color-neutral, 700),
+    "color-icon-on-surface": map.get(color.$color-neutral, 300),
+    "color-text-primary-on-accent": map.get(color.$color-neutral, 900),
+    "color-text-secondary-on-accent": map.get(color.$color-neutral, 700),
+    "color-border-on-accent": map.get(color.$color-accent, 900),
+    "color-icon-on-accent": map.get(color.$color-neutral, 900),
+);
+
+// $light
+$light: map.merge($shared-tokens, $light-color);
+
+// $dark
+$dark: map.merge($shared-tokens, $dark-color);
+
+@mixin emit-tokens($tokens) {
+    @each $name, $value in $tokens {
+        --#{$name}: #{$value};
+    }
+}
+
+:root {
+    @include emit-tokens($light);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-mode="light"]) {
+        @include emit-tokens($dark);
+    }
+}
+
+:root[data-mode="dark"] {
+    @include emit-tokens($dark);
+}

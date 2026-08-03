@@ -1,0 +1,16 @@
+$color-neutral: (
+    0: oklch(100% 0 0deg),
+    100: oklch(96% 0.002 247deg),
+    200: oklch(88% 0.004 247deg),
+    300: oklch(72% 0.006 247deg),
+    700: oklch(35% 0.008 250deg),
+    900: oklch(15% 0.01 250deg),
+);
+
+// Accent hue shares the neutral scale's family so light/dark swaps stay perceptually consistent.
+$color-accent: (
+    100: oklch(92% 0.05 250deg),
+    300: oklch(78% 0.12 250deg),
+    500: oklch(62% 0.19 250deg),
+    900: oklch(30% 0.14 250deg),
+);
