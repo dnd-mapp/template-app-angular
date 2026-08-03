@@ -5,6 +5,12 @@
             "options": {
                 "parser": "angular"
             }
+        },
+        {
+            "files": ["*.scss"],
+            "options": {
+                "singleQuote": false
+            }
         }
     ],
     "plugins": ["prettier-plugin-organize-imports"],
