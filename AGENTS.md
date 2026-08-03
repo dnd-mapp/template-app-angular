@@ -12,7 +12,7 @@ CSS and SCSS coding conventions are documented in [CSS & SCSS Conventions](https
 
 ## Domain concepts and architecture decisions
 
-`dnd-mapp` repositories keep their domain glossary and ADRs in the org wiki (`dnd-mapp/wiki`, under `pages/domain/`), not in a local `CONTEXT.md`/`docs/adr/`. This repo's `CONTEXT.md` is a pointer stub linking to its context page(s) and ADRs there — follow those links (as GitHub source URLs, not the published Wiki.js site, since [wiki's own AGENTS.md](https://github.com/dnd-mapp/wiki/blob/main/AGENTS.md) notes the live instance blocks agent traffic) to read or update domain concepts, instead of writing glossary content into this repo's `CONTEXT.md` directly.
+`dnd-mapp` repositories keep their domain glossary and ADRs in the org wiki (`dnd-mapp/wiki`, under `pages/domain/`), not in a local `CONTEXT.md`/`docs/adr/`. This repo's `CONTEXT.md` is a pointer stub linking to its context page(s) and ADRs there. Follow those links (as GitHub source URLs, not the published Wiki.js site, since [wiki's own AGENTS.md](https://github.com/dnd-mapp/wiki/blob/main/AGENTS.md) notes the live instance blocks agent traffic) to read or update domain concepts, instead of writing glossary content into this repo's `CONTEXT.md` directly.
 
 ## Commit conventions
 
