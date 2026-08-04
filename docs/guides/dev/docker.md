@@ -17,6 +17,22 @@ docker run -p 4000:4000 <image-name>
 
 The container runs as the unprivileged `nginx` user and takes no runtime environment variables or volumes. Everything it needs is baked in at build time.
 
+## Running with Docker Compose
+
+[`.docker/compose.yaml`](../../../.docker/compose.yaml) pulls and runs the image already published to GHCR (see [Available tags](#available-tags)), rather than building locally, and publishes port `4000`. It always pulls before starting (`pull_policy: always`), since tags like `next` and `pr-<N>` get overwritten in place, and restarts the container on failure or daemon restart (`restart: unless-stopped`), but not after a manual `stop`. Run it from the repository root:
+
+```bash
+docker compose -f .docker/compose.yaml up
+```
+
+This defaults to the `next` tag. Set `IMAGE_TAG` to run a different one, e.g. a specific pull request's preview build:
+
+```bash
+IMAGE_TAG=pr-42 docker compose -f .docker/compose.yaml up
+```
+
+Open `http://localhost:4000`. Stop the container with `Ctrl+C`, or `docker compose -f .docker/compose.yaml down` if it was started detached (`-d`).
+
 ## Building with `docker buildx bake`
 
 [`.docker/docker-bake.hcl`](../../../.docker/docker-bake.hcl) defines two targets. Run it from the repository root, the same as `docker build` above. The `IMAGE_NAME` and `IMAGE_TAG` variables control the image's tags; `IMAGE_TAG` accepts a comma-separated list to apply more than one tag in a single build, e.g. `latest,v1.2.3,sha-abc123`.
@@ -48,6 +64,15 @@ The container runs as the unprivileged `nginx` user and takes no runtime environ
   ```
 
   The `ci` target inherits from an empty `docker-metadata-action` placeholder target, so it's compatible with [`docker/metadata-action`](https://github.com/docker/metadata-action): pass its generated bake file alongside this one to have its computed tags and OCI labels override `IMAGE_NAME`/`IMAGE_TAG`, e.g. via [`docker/bake-action`](https://github.com/docker/bake-action) in GitHub Actions. See [`.github/workflows/pull-request.yml`](../../../.github/workflows/pull-request.yml) for how this repository builds and pushes images to GHCR in CI.
+
+## Available tags
+
+| Tag                                    | Produced by                                   | Meaning                                                                                                                                                                          |
+|----------------------------------------|-----------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `pr-<N>`                               | CI, per pull request                          | Built from pull request `<N>` whenever it touches Docker-relevant paths. Lives only as long as the pull request stays open; see [Image lifecycle in CI](#image-lifecycle-in-ci). |
+| `next`                                 | CI, on merge to `main`                        | The most recently merged pull request's image, retagged after merge. Always reflects the current tip of `main`.                                                                  |
+
+Pull `ghcr.io/<owner>/<repo>:next` to run the latest image built from `main`.
 
 ## Image lifecycle in CI
 
