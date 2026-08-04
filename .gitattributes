@@ -11,6 +11,7 @@
 *.mjs           text eol=lf
 
 *.ico           binary
+*.woff2           binary
 
 pnpm-lock.yaml  text eol=lf linguist-generated
 .run/*          linguist-generated
