@@ -69,7 +69,7 @@ Open `http://localhost:4000`. Stop the container with `Ctrl+C`, or `docker compo
 
 | Tag                                    | Produced by                                   | Meaning                                                                                                                                                                          |
 |----------------------------------------|-----------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `pr-<N>`                               | CI, per pull request                          | Built from pull request `<N>` whenever it touches Docker-relevant paths. Lives only as long as the pull request stays open; see [Image lifecycle in CI](#image-lifecycle-in-ci). |
+| `pr-<N>`                               | CI, per pull request                          | Built from pull request `<N>` whenever it touches Docker-relevant paths; see [Image lifecycle in CI](#image-lifecycle-in-ci) for how long it sticks around.                      |
 | `next`                                 | CI, on merge to `main`                        | The most recently merged pull request's image, retagged after merge. Always reflects the current tip of `main`.                                                                  |
 
 Pull `ghcr.io/<owner>/<repo>:next` to run the latest image built from `main`.
@@ -79,3 +79,4 @@ Pull `ghcr.io/<owner>/<repo>:next` to run the latest image built from `main`.
 Pull requests that touch relevant paths get an image built and pushed to GHCR, tagged `pr-<N>`. What happens to that tag next depends on how the pull request is resolved:
 
 - **Merged**: [`.github/workflows/push-main.yml`](../../../.github/workflows/push-main.yml) checks whether a `pr-<N>` image was built for the merged pull request. If so, it retags the image `next`.
+- **Closed without merging**: nothing removes the `pr-<N>` tag today. [`.github/workflows/pull-request-closed.yml`](../../../.github/workflows/pull-request-closed.yml) was written to do this but is disabled, since GHCR has no API for removing a single tag from an image without deleting the whole version (which could also drop other tags pointing at the same digest). `pr-<N>` tags currently accumulate in GHCR until cleaned up some other way.
