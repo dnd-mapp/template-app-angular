@@ -124,47 +124,11 @@ jobs:
                   TAG: pr-${{ needs.check-image.outputs.pr-number }}
               run: docker buildx imagetools create --tag "${IMAGE}:next" "${IMAGE}:${TAG}"
 
-    detect-description-change:
-        name: Detect description change
-        runs-on: ubuntu-22.04
-        timeout-minutes: 2
-        permissions:
-            contents: read
-        outputs:
-            description: ${{ steps.filter.outputs.description }}
-        steps:
-            - name: Checkout repo
-              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+            - name: Delete pr-${{ needs.check-image.outputs.pr-number }} image
+              uses: ./.github/actions/remove-image
               with:
-                  persist-credentials: false
-
-            - name: Check for relevant changes
-              id: filter
-              uses: dorny/paths-filter@7b450fff21473bca461d4b92ce414b9d0420d706 # v4.0.2
-              with:
-                  filters: |
-                      description:
-                          - '.docker/DOCKERHUB.md'
-
-    sync-description:
-        name: Sync Docker Hub description
-        needs: [ci, detect-description-change]
-        if: needs.detect-description-change.outputs.description == 'true'
-        runs-on: ubuntu-22.04
-        timeout-minutes: 5
-        permissions:
-            contents: read
-        steps:
-            - name: Checkout repo
-              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-              with:
-                  persist-credentials: false
-
-            - name: Sync description to Docker Hub
-              uses: peter-evans/dockerhub-description@1b9a80c056b620d92cedb9d9b5a223409c68ddfa # v5.0.0
-              with:
+                  namespace: ${{ secrets.DH_USERNAME }}
+                  repository: ${{ github.event.repository.name }}
+                  tag: pr-${{ needs.check-image.outputs.pr-number }}
+                  token: ${{ secrets.DH_READ_WRITE_DELETE }}
                   username: ${{ secrets.DH_USERNAME }}
-                  password: ${{ secrets.DH_READ_WRITE }}
-                  repository: ${{ secrets.DH_USERNAME }}/${{ github.event.repository.name }}
-                  short-description: Template Angular app for dnd-mapp repositories
-                  readme-filepath: ./.docker/DOCKERHUB.md
