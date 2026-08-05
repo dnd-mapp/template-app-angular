@@ -124,6 +124,15 @@ jobs:
                   TAG: pr-${{ needs.check-image.outputs.pr-number }}
               run: docker buildx imagetools create --tag "${IMAGE}:next" "${IMAGE}:${TAG}"
 
+            - name: Delete pr-${{ needs.check-image.outputs.pr-number }} image
+              uses: ./.github/actions/remove-image
+              with:
+                  namespace: ${{ secrets.DH_USERNAME }}
+                  repository: ${{ github.event.repository.name }}
+                  tag: pr-${{ needs.check-image.outputs.pr-number }}
+                  token: ${{ secrets.DH_READ_WRITE_DELETE }}
+                  username: ${{ secrets.DH_USERNAME }}
+
     detect-description-change:
         name: Detect description change
         runs-on: ubuntu-22.04

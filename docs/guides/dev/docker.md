@@ -69,5 +69,5 @@ Open `http://localhost:4000`. Stop the container with `Ctrl+C`, or `docker compo
 
 Pull requests that touch relevant paths get an image built and pushed to Docker Hub, tagged `pr-<N>`. What happens to that tag next depends on how the pull request is resolved:
 
-- **Merged**: [`.github/workflows/push-main.yml`](../../../.github/workflows/push-main.yml) checks whether a `pr-<N>` image was built for the merged pull request. If so, it retags the image `next`.
+- **Merged**: [`.github/workflows/push-main.yml`](../../../.github/workflows/push-main.yml) checks whether a `pr-<N>` image was built for the merged pull request. If so, it retags the image `next`, then removes the `pr-<N>` tag.
 - **Closed without merging**: [`.github/workflows/pull-request-closed.yml`](../../../.github/workflows/pull-request-closed.yml) removes the `pr-<N>` tag from Docker Hub.
