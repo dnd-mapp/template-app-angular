@@ -1,77 +1,57 @@
 name: Find image version
-description: Looks up a GHCR container package version by tag
+description: Looks up a Docker Hub repository tag
 
 inputs:
-    owner:
-        description: Owner of the GHCR package (org or user)
+    namespace:
+        description: Docker Hub namespace (org or user) the repository belongs to
         required: true
-    package:
-        description: Name of the GHCR package
+    repository:
+        description: Name of the Docker Hub repository
         required: true
     tag:
         description: Tag to look up
         required: true
     token:
-        description: Token with packages:read access, used to query the GHCR API
+        description: Docker Hub access token with read access, used to authenticate to the Docker Hub API
+        required: true
+    username:
+        description: Docker Hub username paired with the access token
         required: true
 
 outputs:
     exists:
-        description: Whether a version tagged with the given tag was found
+        description: Whether the given tag was found
         value: ${{ steps.find.outputs.exists }}
-    version-id:
-        description: The id of the matching package version, if found
-        value: ${{ steps.find.outputs.version-id }}
-    tags:
-        description: JSON array of all tags on the matching package version, if found
-        value: ${{ steps.find.outputs.tags }}
 
 runs:
     using: composite
     steps:
-        - name: Find version tagged ${{ inputs.tag }}
+        - name: Find tag ${{ inputs.tag }}
           id: find
           shell: bash
           env:
-              GH_TOKEN: ${{ inputs.token }}
-              OWNER: ${{ inputs.owner }}
-              PACKAGE: ${{ inputs.package }}
+              USERNAME: ${{ inputs.username }}
+              PASSWORD: ${{ inputs.token }}
+              NAMESPACE: ${{ inputs.namespace }}
+              REPOSITORY: ${{ inputs.repository }}
               TAG: ${{ inputs.tag }}
           run: |
-              err_file=$(mktemp)
+              jwt=$(curl -sf -X POST "https://hub.docker.com/v2/users/login/" \
+                  -H "Content-Type: application/json" \
+                  -d "$(jq -n --arg u "$USERNAME" --arg p "$PASSWORD" '{username: $u, password: $p}')" \
+                  | jq -r '.token')
 
-              if ! versions_json=$(gh api --paginate "/orgs/${OWNER}/packages/container/${PACKAGE}/versions" 2>"$err_file"); then
-                  # GHCR returns a 404 for the whole package once it has no versions left
-                  # (e.g. every previously published tag has since been removed), which is
-                  # indistinguishable from "no image tagged ${TAG} was ever published".
-                  if grep -q "HTTP 404" "$err_file"; then
-                      echo "No package named ${PACKAGE} found (no image has been published yet)."
-                      echo "exists=false" >> "$GITHUB_OUTPUT"
-                      echo "version-id=" >> "$GITHUB_OUTPUT"
-                      echo "tags=[]" >> "$GITHUB_OUTPUT"
-                      rm -f "$err_file"
-                      exit 0
-                  fi
+              status=$(curl -s -o /dev/null -w '%{http_code}' \
+                  -H "Authorization: Bearer ${jwt}" \
+                  "https://hub.docker.com/v2/namespaces/${NAMESPACE}/repositories/${REPOSITORY}/tags/${TAG}/")
 
-                  cat "$err_file" >&2
-                  rm -f "$err_file"
-                  exit 1
-              fi
-
-              rm -f "$err_file"
-
-              version_json=$(echo "$versions_json" | jq -c ".[] | select(.metadata.container.tags[]? == \"${TAG}\")" | head -n1)
-
-              if [ -z "$version_json" ]; then
-                  echo "No image tagged ${TAG} found."
-                  echo "exists=false" >> "$GITHUB_OUTPUT"
-                  echo "version-id=" >> "$GITHUB_OUTPUT"
-                  echo "tags=[]" >> "$GITHUB_OUTPUT"
-              else
-                  version_id=$(echo "$version_json" | jq -r ".id")
-                  tags=$(echo "$version_json" | jq -c ".metadata.container.tags")
-                  echo "Found image tagged ${TAG} (version ${version_id}, tags: ${tags})."
+              if [ "$status" = "200" ]; then
+                  echo "Found tag ${TAG} in ${NAMESPACE}/${REPOSITORY}."
                   echo "exists=true" >> "$GITHUB_OUTPUT"
-                  echo "version-id=$version_id" >> "$GITHUB_OUTPUT"
-                  echo "tags=$tags" >> "$GITHUB_OUTPUT"
+              elif [ "$status" = "404" ]; then
+                  echo "No tag ${TAG} found in ${NAMESPACE}/${REPOSITORY}."
+                  echo "exists=false" >> "$GITHUB_OUTPUT"
+              else
+                  echo "Unexpected response (HTTP ${status}) looking up ${NAMESPACE}/${REPOSITORY}:${TAG}." >&2
+                  exit 1
               fi

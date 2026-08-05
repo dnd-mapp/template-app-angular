@@ -19,7 +19,7 @@ The container runs as the unprivileged `nginx` user and takes no runtime environ
 
 ## Running with Docker Compose
 
-[`.docker/compose.yaml`](../../../.docker/compose.yaml) pulls and runs the image already published to GHCR (see [Available tags](#available-tags)), rather than building locally, and publishes port `4000`. It always pulls before starting (`pull_policy: always`), since tags like `next` and `pr-<N>` get overwritten in place, and restarts the container on failure or daemon restart (`restart: unless-stopped`), but not after a manual `stop`. Run it from the repository root:
+[`.docker/compose.yaml`](../../../.docker/compose.yaml) pulls and runs the image already published to [Docker Hub](https://hub.docker.com/r/dndmapp/template-app-angular/tags), rather than building locally, and publishes port `4000`. It always pulls before starting (`pull_policy: always`), since tags like `next` and `pr-<N>` get overwritten in place, and restarts the container on failure or daemon restart (`restart: unless-stopped`), but not after a manual `stop`. Run it from the repository root:
 
 ```bash
 docker compose -f .docker/compose.yaml up
@@ -63,20 +63,11 @@ Open `http://localhost:4000`. Stop the container with `Ctrl+C`, or `docker compo
   docker buildx bake -f .docker/docker-bake.hcl ci --set ci.output=type=oci,dest=./image.tar
   ```
 
-  The `ci` target inherits from an empty `docker-metadata-action` placeholder target, so it's compatible with [`docker/metadata-action`](https://github.com/docker/metadata-action): pass its generated bake file alongside this one to have its computed tags and OCI labels override `IMAGE_NAME`/`IMAGE_TAG`, e.g. via [`docker/bake-action`](https://github.com/docker/bake-action) in GitHub Actions. See [`.github/workflows/pull-request.yml`](../../../.github/workflows/pull-request.yml) for how this repository builds and pushes images to GHCR in CI.
-
-## Available tags
-
-| Tag                                    | Produced by                                   | Meaning                                                                                                                                                                          |
-|----------------------------------------|-----------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `pr-<N>`                               | CI, per pull request                          | Built from pull request `<N>` whenever it touches Docker-relevant paths; see [Image lifecycle in CI](#image-lifecycle-in-ci) for how long it sticks around.                      |
-| `next`                                 | CI, on merge to `main`                        | The most recently merged pull request's image, retagged after merge. Always reflects the current tip of `main`.                                                                  |
-
-Pull `ghcr.io/<owner>/<repo>:next` to run the latest image built from `main`.
+  The `ci` target inherits from an empty `docker-metadata-action` placeholder target, so it's compatible with [`docker/metadata-action`](https://github.com/docker/metadata-action): pass its generated bake file alongside this one to have its computed tags and OCI labels override `IMAGE_NAME`/`IMAGE_TAG`, e.g. via [`docker/bake-action`](https://github.com/docker/bake-action) in GitHub Actions. See [`.github/workflows/pull-request.yml`](../../../.github/workflows/pull-request.yml) for how this repository builds and pushes images to Docker Hub in CI.
 
 ## Image lifecycle in CI
 
-Pull requests that touch relevant paths get an image built and pushed to GHCR, tagged `pr-<N>`. What happens to that tag next depends on how the pull request is resolved:
+Pull requests that touch relevant paths get an image built and pushed to Docker Hub, tagged `pr-<N>`. What happens to that tag next depends on how the pull request is resolved:
 
 - **Merged**: [`.github/workflows/push-main.yml`](../../../.github/workflows/push-main.yml) checks whether a `pr-<N>` image was built for the merged pull request. If so, it retags the image `next`.
-- **Closed without merging**: nothing removes the `pr-<N>` tag today. [`.github/workflows/pull-request-closed.yml`](../../../.github/workflows/pull-request-closed.yml) was written to do this but is disabled, since GHCR has no API for removing a single tag from an image without deleting the whole version (which could also drop other tags pointing at the same digest). `pr-<N>` tags currently accumulate in GHCR until cleaned up some other way.
+- **Closed without merging**: [`.github/workflows/pull-request-closed.yml`](../../../.github/workflows/pull-request-closed.yml) removes the `pr-<N>` tag from Docker Hub.

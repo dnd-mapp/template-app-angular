@@ -49,9 +49,8 @@
 #
 #     - uses: docker/login-action@v3
 #       with:
-#         registry: <registry>
-#         username: ${{ github.actor }}
-#         password: ${{ secrets.GITHUB_TOKEN }}
+#         username: ${{ secrets.DOCKERHUB_USERNAME }}
+#         password: ${{ secrets.DOCKERHUB_TOKEN }}
 #
 #     - uses: docker/bake-action@v4
 #       env:
