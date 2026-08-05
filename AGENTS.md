@@ -17,3 +17,7 @@ CSS and SCSS coding conventions are documented in [CSS & SCSS Conventions](https
 ## Commit conventions
 
 - Draft commit messages and get confirmation before committing.
+
+## Pull requests
+
+This repo uses GitHub for pull requests. For configuration, see [docs/agents/pull-requests.md](docs/agents/pull-requests.md).
