@@ -37,30 +37,9 @@
 #
 #   "ci" also inherits from "docker-metadata-action", an empty placeholder
 #   target that docker/metadata-action's generated bake file overrides with
-#   its computed tags and OCI labels when passed alongside this file, e.g.
-#   in GitHub Actions via docker/bake-action:
-#
-#     - uses: docker/setup-buildx-action@v3
-#
-#     - uses: docker/metadata-action@v5
-#       id: meta
-#       with:
-#         images: <registry>/<image-name>
-#
-#     - uses: docker/login-action@v3
-#       with:
-#         username: ${{ secrets.DOCKERHUB_USERNAME }}
-#         password: ${{ secrets.DOCKERHUB_TOKEN }}
-#
-#     - uses: docker/bake-action@v4
-#       env:
-#         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-#       with:
-#         files: |
-#           .docker/docker-bake.hcl
-#           ${{ steps.meta.outputs.bake-file }}
-#         targets: ci
-#         push: true
+#   its computed tags and OCI labels when passed alongside this file. See
+#   .github/workflows/pull-request.yml for how this repository wires that up
+#   in GitHub Actions via docker/bake-action.
 #
 #   "ci" reads and writes its build cache through the GitHub Actions cache
 #   backend (mode=max, so cache covers every layer of every build stage, not

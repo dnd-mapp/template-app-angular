@@ -148,7 +148,7 @@ jobs:
 
     sync-description:
         name: Sync Docker Hub description
-        needs: detect-description-change
+        needs: [ci, detect-description-change]
         if: needs.detect-description-change.outputs.description == 'true'
         runs-on: ubuntu-22.04
         timeout-minutes: 5
