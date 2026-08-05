@@ -1,9 +1,16 @@
 <!--
-This file is synced to the Docker Hub repository description by
-.github/workflows/push-main.yml whenever it changes. It's meant to stand on
-its own for a Docker Hub visitor, so keep it self-contained rather than
-linking to other files in the source repo (except the "Building the image"
-section, which intentionally redirects there).
+This file is the source of truth for the Docker Hub repository description,
+but it is NOT synced there automatically: Docker Hub's description-update API
+endpoint rejects Personal Access Tokens outright (a platform limitation, not
+something fixable from this repo - see docker/hub-feedback#1927), and this
+repo otherwise only ever hands CI a scoped access token, never the real
+account password. So after merging a change to this file, paste its contents
+into the Docker Hub repository's "Description" editor by hand:
+https://hub.docker.com/repository/docker/dndmapp/template-app-angular/general
+
+It's meant to stand on its own for a Docker Hub visitor, so keep it
+self-contained rather than linking to other files in the source repo (except
+the "Building the image" section, which intentionally redirects there).
 
 If you change the "Available tags" table here, update the equivalent
 narrative in docs/guides/dev/docker.md too - the two aren't kept in sync
