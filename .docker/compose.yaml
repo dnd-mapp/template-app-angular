@@ -1,17 +1,17 @@
-# Runs the image published to GHCR, pulling it if not already present
+# Runs the image published to Docker Hub, pulling it if not already present
 # locally. Run from the repository root:
 #
 #   docker compose -f .docker/compose.yaml up
 #
 # IMAGE_TAG selects which published tag to run; see the "Available tags"
-# section of docs/guides/dev/docker.md for what's published, e.g.:
+# section of .docker/DOCKERHUB.md for what's published, e.g.:
 #
 #   IMAGE_TAG=pr-42 docker compose -f .docker/compose.yaml up
 
 services:
     app:
         container_name: template-app-angular
-        image: ghcr.io/dnd-mapp/template-app-angular:${IMAGE_TAG:-next}
+        image: dndmapp/template-app-angular:${IMAGE_TAG:-next}
         pull_policy: always
         restart: unless-stopped
         ports:

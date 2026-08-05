@@ -1,72 +1,50 @@
 name: Remove image
-description: Deletes a GHCR container package version by tag, if it exists
+description: Deletes a Docker Hub repository tag, if it exists
 
 inputs:
-    owner:
-        description: Owner of the GHCR package (org or user)
+    namespace:
+        description: Docker Hub namespace (org or user) the repository belongs to
         required: true
-    package:
-        description: Name of the GHCR package
+    repository:
+        description: Name of the Docker Hub repository
         required: true
     tag:
         description: Tag to remove
         required: true
     token:
-        description: Token with packages:write access, used to query and modify the GHCR API
+        description: Docker Hub access token with delete access, used to authenticate to the Docker Hub API
+        required: true
+    username:
+        description: Docker Hub username paired with the access token
         required: true
 
 runs:
     using: composite
     steps:
-        - name: Find version tagged ${{ inputs.tag }}
-          id: find
-          uses: ./.github/actions/find-image-version
-          with:
-              owner: ${{ inputs.owner }}
-              package: ${{ inputs.package }}
-              tag: ${{ inputs.tag }}
-              token: ${{ inputs.token }}
-
-        - name: Delete ${{ inputs.package }}:${{ inputs.tag }}
-          if: steps.find.outputs.exists == 'true'
+        - name: Delete ${{ inputs.repository }}:${{ inputs.tag }}
           shell: bash
           env:
-              GH_TOKEN: ${{ inputs.token }}
-              OWNER: ${{ inputs.owner }}
-              PACKAGE: ${{ inputs.package }}
+              USERNAME: ${{ inputs.username }}
+              PASSWORD: ${{ inputs.token }}
+              NAMESPACE: ${{ inputs.namespace }}
+              REPOSITORY: ${{ inputs.repository }}
               TAG: ${{ inputs.tag }}
-              VERSION_ID: ${{ steps.find.outputs.version-id }}
-              TAGS: ${{ steps.find.outputs.tags }}
           run: |
-              # A GHCR package version can carry more than one tag (e.g. a PR image
-              # promoted to `next` keeps the `pr-N` tag on the same version). The API
-              # can only delete a whole version, taking every tag on it down with it,
-              # so refuse to delete when the version is still shared with other tags.
-              other_tags=$(echo "$TAGS" | jq -r --arg t "$TAG" '[.[] | select(. != $t)] | join(", ")')
+              jwt=$(curl -sf -X POST "https://hub.docker.com/v2/users/login/" \
+                  -H "Content-Type: application/json" \
+                  -d "$(jq -n --arg u "$USERNAME" --arg p "$PASSWORD" '{username: $u, password: $p}')" \
+                  | jq -r '.token')
 
-              if [ -n "$other_tags" ]; then
-                  echo "Not deleting ${PACKAGE}:${TAG} (version ${VERSION_ID}): also tagged ${other_tags}, deleting the version would remove those tags too."
-                  exit 0
+              # Docker Hub deletes exactly the given tag, leaving other tags on the
+              # same digest (e.g. `next`) untouched, so there's no shared-version
+              # guard to worry about here unlike GHCR.
+              status=$(curl -s -o /dev/null -w '%{http_code}' -X DELETE \
+                  -H "Authorization: Bearer ${jwt}" \
+                  "https://hub.docker.com/v2/namespaces/${NAMESPACE}/repositories/${REPOSITORY}/tags/${TAG}/")
+
+              if [ "$status" = "204" ] || [ "$status" = "404" ]; then
+                  echo "Deleted ${REPOSITORY}:${TAG} (or it was already gone)."
+              else
+                  echo "Unexpected response (HTTP ${status}) deleting ${NAMESPACE}/${REPOSITORY}:${TAG}." >&2
+                  exit 1
               fi
-
-              err_file=$(mktemp)
-
-              if gh api --method DELETE "/orgs/${OWNER}/packages/container/${PACKAGE}/versions/${VERSION_ID}" 2>"$err_file"; then
-                  echo "Deleted ${PACKAGE}:${TAG} (version ${VERSION_ID})"
-                  rm -f "$err_file"
-                  exit 0
-              fi
-
-              # GHCR refuses to delete the only tagged version of a package via the
-              # versions endpoint; the package itself has to be deleted instead.
-              if grep -qi "cannot delete the last tagged version" "$err_file"; then
-                  cat "$err_file" >&2
-                  rm -f "$err_file"
-                  gh api --method DELETE "/orgs/${OWNER}/packages/container/${PACKAGE}"
-                  echo "Deleted package ${PACKAGE} (last remaining tag was ${TAG}, version ${VERSION_ID})"
-                  exit 0
-              fi
-
-              cat "$err_file" >&2
-              rm -f "$err_file"
-              exit 1

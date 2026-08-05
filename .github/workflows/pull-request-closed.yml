@@ -22,19 +22,11 @@ jobs:
               with:
                   persist-credentials: false
 
-            - name: Create GitHub App token
-              id: app-token
-              uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
-              with:
-                  client-id: ${{ secrets.GH_APP_CLIENT_ID }}
-                  private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
-                  owner: ${{ github.repository_owner }}
-                  permission-packages: write
-
             - name: Remove pr-${{ github.event.pull_request.number }} image
               uses: ./.github/actions/remove-image
               with:
-                  owner: ${{ github.repository_owner }}
-                  package: ${{ github.event.repository.name }}
+                  namespace: ${{ secrets.DH_USERNAME }}
+                  repository: ${{ github.event.repository.name }}
                   tag: pr-${{ github.event.pull_request.number }}
-                  token: ${{ steps.app-token.outputs.token }}
+                  token: ${{ secrets.DH_READ_WRITE_DELETE }}
+                  username: ${{ secrets.DH_USERNAME }}
