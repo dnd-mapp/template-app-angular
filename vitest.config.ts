@@ -13,7 +13,7 @@ export default defineConfig({
             reportOnFailure: true,
         },
         globals: true,
-        name: 'angular-app-template',
+        name: 'template-app-angular',
         open: false,
         sequence: {
             shuffle: true,

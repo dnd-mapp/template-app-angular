@@ -1,4 +1,4 @@
-# angular-app-template
+# template-app-angular
 
 Domain concepts and architecture decisions for this repo live in the org wiki, not in this file. See [AGENTS.md](AGENTS.md) for the convention.
 
