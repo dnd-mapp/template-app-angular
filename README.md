@@ -1,4 +1,4 @@
-# dnd-mapp/angular-app-template
+# dnd-mapp/template-app-angular
 
 Template repository for bootstrapping new Angular-based `dnd-mapp` repositories, with shared tooling, CI, and browser-based testing pre-configured.
 

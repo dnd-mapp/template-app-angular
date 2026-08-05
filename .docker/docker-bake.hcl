@@ -70,11 +70,11 @@
 #   action wires up automatically, so it doesn't need registry credentials.
 
 variable "IMAGE_NAME" {
-    default = "angular-app-template"
+    default = "template-app-angular"
 
     validation {
         condition     = can(regex("^([a-z0-9]+([.-][a-z0-9]+)*(:[0-9]+)?/)?[a-z0-9]+([._-][a-z0-9]+)*(/[a-z0-9]+([._-][a-z0-9]+)*)*$", IMAGE_NAME))
-        error_message = "IMAGE_NAME must be a valid Docker image name, optionally prefixed with a registry host[:port], e.g. \"localhost:5000/angular-app-template\"."
+        error_message = "IMAGE_NAME must be a valid Docker image name, optionally prefixed with a registry host[:port], e.g. \"localhost:5000/template-app-angular\"."
     }
 }
 
