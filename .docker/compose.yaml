@@ -11,7 +11,7 @@
 services:
     app:
         container_name: angular-app-template
-        image: ghcr.io/dnd-mapp/angular-app-template:${IMAGE_TAG:-next}
+        image: ghcr.io/dnd-mapp/template-app-angular:${IMAGE_TAG:-next}
         pull_policy: always
         restart: unless-stopped
         ports:
