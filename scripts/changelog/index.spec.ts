@@ -10,6 +10,34 @@ const CHANGELOG_PATH = 'CHANGELOG.md';
 const dirs: string[] = [];
 
 /**
+ * Computes today's date in `YYYY-MM-DD` format for a given IANA timezone, mirroring `index.ts`'s own
+ * `today()` so tests can assert against the exact date the CLI should have written, in whichever
+ * timezone a given test is exercising.
+ *
+ * @param timeZone - The IANA timezone to compute the date in, e.g. `Europe/Amsterdam` or `UTC`.
+ * @returns Today's date in that timezone, as `YYYY-MM-DD`.
+ */
+function todayIn(timeZone: string): string {
+    const parts = new Intl.DateTimeFormat('en-US', {
+        timeZone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+    }).formatToParts(new Date());
+    const part = (type: 'year' | 'month' | 'day'): string => {
+        const found = parts.find((candidate) => candidate.type === type);
+
+        if (!found) {
+            throw new Error(`Intl.DateTimeFormat did not return a "${type}" part.`);
+        }
+
+        return found.value;
+    };
+
+    return `${part('year')}-${part('month')}-${part('day')}`;
+}
+
+/**
  * Creates a fresh temp directory containing a `CHANGELOG.md` with the given content, so each test gets
  * its own isolated "repo root" to run the CLI against.
  *
@@ -47,7 +75,7 @@ describe('no arguments', () => {
 
         expect(result.status).toBe(0);
         expect(result.stdout).toContain('Usage: changelog');
-        expect(result.stdout).toContain('bump <version> <repo>');
+        expect(result.stdout).toContain('bump [options] <version> <repo>');
     });
 });
 
@@ -114,19 +142,45 @@ describe('extract', () => {
 });
 
 describe('bump', () => {
-    it('writes a new dated version section, resets Unreleased, and links the release on disk', () => {
+    it('writes a new version section dated in Europe/Amsterdam by default, and links the release on disk', () => {
         const dir = tempRepo(
             '## [Unreleased]\n\n### Added\n\n- Added a widget.\n\n[Unreleased]: https://example.com/commits/main\n',
         );
 
         const result = runCli(['bump', '1.0.0', 'acme/repo'], dir);
-        const today = new Date().toISOString().slice(0, 10);
+        const today = todayIn('Europe/Amsterdam');
         const updated = readFileSync(join(dir, CHANGELOG_PATH), 'utf8');
 
         expect(result.status).toBe(0);
         expect(updated).toContain('## [Unreleased]\n\n## [1.0.0]');
         expect(updated).toContain(`## [1.0.0] - ${today}\n\n### Added\n\n- Added a widget.`);
         expect(updated).toContain('[1.0.0]: https://github.com/acme/repo/releases/tag/v1.0.0');
+    });
+
+    it('dates the version section in the given --timezone when passed', () => {
+        const dir = tempRepo(
+            '## [Unreleased]\n\n### Added\n\n- Added a widget.\n\n[Unreleased]: https://example.com/commits/main\n',
+        );
+
+        const result = runCli(['bump', '1.0.0', 'acme/repo', '--timezone', 'Pacific/Kiritimati'], dir);
+        const today = todayIn('Pacific/Kiritimati');
+        const updated = readFileSync(join(dir, CHANGELOG_PATH), 'utf8');
+
+        expect(result.status).toBe(0);
+        expect(updated).toContain(`## [1.0.0] - ${today}`);
+    });
+
+    it('exits 1, reports, and leaves the file untouched for an unrecognized --timezone', () => {
+        const original =
+            '## [Unreleased]\n\n### Added\n\n- Added a widget.\n\n[Unreleased]: https://example.com/commits/main\n';
+        const dir = tempRepo(original);
+
+        const result = runCli(['bump', '1.0.0', 'acme/repo', '--timezone', 'Not/AZone'], dir);
+        const untouched = readFileSync(join(dir, CHANGELOG_PATH), 'utf8');
+
+        expect(result.status).toBe(1);
+        expect(result.stderr).toContain('Invalid time zone specified: Not/AZone');
+        expect(untouched).toBe(original);
     });
 
     it('exits 1, reports, and leaves the file untouched when Unreleased has no entries', () => {

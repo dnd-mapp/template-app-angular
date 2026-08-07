@@ -18,7 +18,7 @@ node scripts/changelog/index.ts <command> [arguments]
 
 ### Commands
 
-- `bump <version> <repo>`: moves every entry out of `## [Unreleased]` into a new `## [<version>] - YYYY-MM-DD` section, resets `Unreleased` to bare, and inserts a `[<version>]` reference link pointing at `https://github.com/<repo>/releases/tag/v<version>`.
+- `bump <version> <repo> [--timezone <tz>]`: moves every entry out of `## [Unreleased]` into a new `## [<version>] - YYYY-MM-DD` section, resets `Unreleased` to bare, and inserts a `[<version>]` reference link pointing at `https://github.com/<repo>/releases/tag/v<version>`. The date is today's date in `--timezone` (any IANA name, e.g. `UTC`), defaulting to `Europe/Amsterdam`.
 - `extract <version>`: prints the `## [<version>]` section's body to stdout, for reuse as GitHub Release notes.
 - `check`: exits non-zero if `Unreleased` has no entries, for a release workflow's freshness guard.
 
@@ -26,6 +26,7 @@ Each command reads `CHANGELOG.md`, and `bump` also writes it back. On failure, a
 
 ```bash
 $ node scripts/changelog/index.ts bump 1.2.0 dnd-mapp/template-app-angular
+$ node scripts/changelog/index.ts bump 1.2.0 dnd-mapp/template-app-angular --timezone UTC
 $ node scripts/changelog/index.ts extract 1.2.0
 ### Added
 

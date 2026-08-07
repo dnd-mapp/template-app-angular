@@ -25,10 +25,28 @@ function tryCatch<T>(fn: () => T): Result<T> {
 const CHANGELOG_PATH = 'CHANGELOG.md';
 
 /**
- * @returns Today's date in `YYYY-MM-DD` format, per the system clock.
+ * @param timeZone - The IANA timezone to compute the date in, e.g. `Europe/Amsterdam` or `UTC`.
+ * @returns Today's date in `YYYY-MM-DD` format, per `timeZone`'s wall clock.
+ * @throws {RangeError} If `timeZone` isn't a recognized IANA timezone name.
  */
-function today(): string {
-    return new Date().toISOString().slice(0, 10);
+function today(timeZone: string): string {
+    const parts = new Intl.DateTimeFormat('en-US', {
+        timeZone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+    }).formatToParts(new Date());
+    const part = (type: 'year' | 'month' | 'day'): string => {
+        const found = parts.find((candidate) => candidate.type === type);
+
+        if (!found) {
+            throw new Error(`Intl.DateTimeFormat did not return a "${type}" part.`);
+        }
+
+        return found.value;
+    };
+
+    return `${part('year')}-${part('month')}-${part('day')}`;
 }
 
 /**
@@ -50,11 +68,12 @@ program
     .description('Move Unreleased entries into a new dated version section.')
     .argument('<version>', 'version being released, e.g. 1.2.0')
     .argument('<repo>', 'GitHub owner/repo slug the release link points at, e.g. dnd-mapp/template-app-angular')
-    .action((version: string, repo: string) => {
+    .option('-t, --timezone <tz>', 'IANA timezone to compute the release date in', 'Europe/Amsterdam')
+    .action((version: string, repo: string, options: { timezone: string }) => {
         const result = tryCatch(() => {
             const releaseUrl = `https://github.com/${repo}/releases/tag/v${version}`;
 
-            writeFileSync(CHANGELOG_PATH, bumpChangelog(readChangelog(), version, today(), releaseUrl));
+            writeFileSync(CHANGELOG_PATH, bumpChangelog(readChangelog(), version, today(options.timezone), releaseUrl));
         });
 
         if (!result.ok) {
