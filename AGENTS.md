@@ -4,6 +4,8 @@
 
 Commit message and CI conventions shared across all `dnd-mapp` repositories are documented in [GitHub Repository Conventions](https://github.com/dnd-mapp/wiki/blob/main/pages/development-conventions/github.md).
 
+Changelog conventions shared across all `dnd-mapp` repositories are documented in [Changelog Conventions](https://github.com/dnd-mapp/wiki/blob/main/pages/development-conventions/changelogs.md).
+
 Pull request conventions are documented in [Creating a Pull Request](https://github.com/dnd-mapp/wiki/blob/main/pages/development-conventions/creating-a-pull-request.md).
 
 TypeScript and Angular coding conventions are documented in [Angular & TypeScript Conventions](https://github.com/dnd-mapp/wiki/blob/main/pages/development-conventions/angular-typescript.md).
