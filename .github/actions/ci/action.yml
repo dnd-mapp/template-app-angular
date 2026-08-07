@@ -27,6 +27,9 @@ runs:
 
         - name: Run tests
           shell: bash
+          # `-w` targets only the workspace root's own script; `-r` targets every *other* workspace package,
+          # since pnpm's recursive mode excludes the workspace root itself. Both invocations are needed to
+          # cover the whole workspace — neither one alone is redundant with the other.
           run: |
               pnpm playwright-install-browsers
               pnpm --if-present -w run test-ci
@@ -38,6 +41,8 @@ runs:
 
         - name: Run ESLint
           shell: bash
+          # Same `-w`/`-r` split as the "Run tests" step above, and for the same reason: pnpm's recursive
+          # mode excludes the workspace root, so both invocations are needed to cover the whole workspace.
           run: |
               pnpm --if-present -w run lint-ts
               pnpm --if-present -r run lint-ts
