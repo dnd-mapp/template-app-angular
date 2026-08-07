@@ -1,0 +1,28 @@
+{
+  "name": "@dnd-mapp/changelog",
+  "version": "0.0.0",
+  "description": "Keep a Changelog release automation, shared across dnd-mapp repositories",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint-ts": "eslint .",
+    "test": "vitest --ui",
+    "test-ci": "vitest run",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.spec.json"
+  },
+  "dependencies": {
+    "commander": "catalog:default"
+  },
+  "devDependencies": {
+    "@eslint/js": "catalog:default",
+    "@types/node": "catalog:default",
+    "@vitest/coverage-v8": "catalog:default",
+    "@vitest/ui": "catalog:default",
+    "eslint": "catalog:default",
+    "eslint-config-prettier": "catalog:default",
+    "typescript": "catalog:default",
+    "typescript-eslint": "catalog:default",
+    "vitest": "catalog:default"
+  }
+}
