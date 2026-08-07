@@ -109,7 +109,7 @@ describe('check', () => {
         const result = runCli(['check'], dir);
 
         expect(result.status).toBe(1);
-        expect(result.stderr).toContain('CHANGELOG.md');
+        expect(result.stderr).toContain('No CHANGELOG.md found in the current working directory.');
     });
 });
 

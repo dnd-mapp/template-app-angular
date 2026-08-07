@@ -50,10 +50,30 @@ function today(timeZone: string): string {
 }
 
 /**
+ * Checks whether a caught value is a Node.js filesystem error carrying an error `code`, e.g. `ENOENT`.
+ *
+ * @param error - The caught value to check.
+ * @returns `true` if `error` is an `Error` with a `code` property; narrows the type to `NodeJS.ErrnoException`.
+ */
+function isErrnoException(error: unknown): error is NodeJS.ErrnoException {
+    return error instanceof Error && 'code' in error;
+}
+
+/**
  * @returns The contents of `CHANGELOG.md` in the current working directory.
+ * @throws {Error} With a message naming the missing file, if `CHANGELOG.md` doesn't exist in the current
+ * working directory. Any other read failure (e.g. a permissions error) is rethrown as-is.
  */
 function readChangelog(): string {
-    return readFileSync(CHANGELOG_PATH, 'utf8');
+    try {
+        return readFileSync(CHANGELOG_PATH, 'utf8');
+    } catch (error) {
+        if (isErrnoException(error) && error.code === 'ENOENT') {
+            throw new Error(`No ${CHANGELOG_PATH} found in the current working directory.`, { cause: error });
+        }
+
+        throw error;
+    }
 }
 
 const program = new Command('changelog').description('Keep a Changelog release automation.');
