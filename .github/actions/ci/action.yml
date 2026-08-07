@@ -21,11 +21,16 @@ runs:
           shell: bash
           run: pnpm build
 
+        - name: Run typechecks
+          shell: bash
+          run: pnpm --if-present -r run typecheck
+
         - name: Run tests
           shell: bash
           run: |
               pnpm playwright-install-browsers
-              pnpm test-ci
+              pnpm --if-present -w run test-ci
+              pnpm --if-present -r run test-ci
 
         - name: Run Prettier
           shell: bash
@@ -33,7 +38,9 @@ runs:
 
         - name: Run ESLint
           shell: bash
-          run: pnpm lint-ts
+          run: |
+              pnpm --if-present -w run lint-ts
+              pnpm --if-present -r run lint-ts
 
         - name: Run Stylelint
           shell: bash

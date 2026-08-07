@@ -17,5 +17,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Added ESLint (`angular-eslint`), enabled in CI, with WebStorm/VS Code integration.
 - Scaffolded the Angular application, with CI to build and test it, and WebStorm/VS Code task runner configs.
 - Added a `scripts/changelog` package (`@dnd-mapp/changelog`) with a `bump`/`extract`/`check` CLI for moving `Unreleased` changelog entries into a versioned section, extracting a release's notes, and guarding against releasing an empty `Unreleased`. Added pnpm workspaces (`scripts/*`) and a named `default` dependency catalog so every dependency's version is declared once.
+- Added CI typechecking (`pnpm --if-present -r run typecheck`) and extended the existing lint/test steps to run across every workspace package, not just the Angular app.
 
 [Unreleased]: https://github.com/dnd-mapp/template-app-angular/commits/main
