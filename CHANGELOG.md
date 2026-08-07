@@ -16,5 +16,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Added Stylelint (`stylelint-config-recess-order`), enabled in CI, with WebStorm/VS Code integration.
 - Added ESLint (`angular-eslint`), enabled in CI, with WebStorm/VS Code integration.
 - Scaffolded the Angular application, with CI to build and test it, and WebStorm/VS Code task runner configs.
+- Added a `scripts/changelog` package (`@dnd-mapp/changelog`) with a `bump`/`extract`/`check` CLI for moving `Unreleased` changelog entries into a versioned section, extracting a release's notes, and guarding against releasing an empty `Unreleased`. Added pnpm workspaces (`scripts/*`) and a named `default` dependency catalog so every dependency's version is declared once.
+- Added support to the `scripts/changelog` CLI for changelog entries that wrap onto extra lines or carry a nested sub-list.
+- Added a README to the `scripts/changelog` package, documenting its commands and usage.
+- Added a `--timezone` option to the `scripts/changelog` CLI's `bump` command, an IANA timezone name that controls which calendar day a release is dated on, defaulting to `Europe/Amsterdam`.
+- Added CI typechecking (`pnpm -r run typecheck`) and extended the existing lint/test steps to run across every workspace package, not just the Angular app.
+- Added a warning on stderr from the `scripts/changelog` CLI's `bump`/`check` commands when `Unreleased` has an unrecognized category heading with entries under it, so a typo'd or miscapitalized heading doesn't silently drop its entries on release.
+- Added validation of the `scripts/changelog` CLI's `bump` command's `<repo>` argument, rejecting anything that isn't a GitHub `owner/repo` slug instead of writing a broken release link to `CHANGELOG.md`.
 
 [Unreleased]: https://github.com/dnd-mapp/template-app-angular/commits/main

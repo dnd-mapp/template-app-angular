@@ -21,11 +21,23 @@ runs:
           shell: bash
           run: pnpm build
 
+        - name: Run typechecks
+          shell: bash
+          run: pnpm -r run typecheck
+
         - name: Run tests
           shell: bash
+          # `-w` targets only the workspace root's own script; `-r` targets every *other* workspace package,
+          # since pnpm's recursive mode excludes the workspace root itself. Both invocations are needed to
+          # cover the whole workspace — neither one alone is redundant with the other. No `--if-present`:
+          # `-w` targets exactly one package, so it fails loudly if the root ever loses this script. `-r`
+          # already tolerates a package missing the script by design (pnpm skips it rather than erroring,
+          # as long as at least one selected package has it) — `--if-present` wouldn't change that either
+          # way, so it's dropped here too for consistency rather than to enforce anything.
           run: |
               pnpm playwright-install-browsers
-              pnpm test-ci
+              pnpm -w run test-ci
+              pnpm -r run test-ci
 
         - name: Run Prettier
           shell: bash
@@ -33,7 +45,10 @@ runs:
 
         - name: Run ESLint
           shell: bash
-          run: pnpm lint-ts
+          # Same `-w`/`-r` split (and the same `--if-present` reasoning) as the "Run tests" step above.
+          run: |
+              pnpm -w run lint-ts
+              pnpm -r run lint-ts
 
         - name: Run Stylelint
           shell: bash
