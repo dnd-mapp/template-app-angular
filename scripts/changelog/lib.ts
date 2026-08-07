@@ -11,6 +11,7 @@ const SECTION_HEADING = /^## \[Unreleased\]$/m;
 const SECTION_BOUNDARY = /^(?:## |\[[^\]]+\]: )/m;
 const CATEGORY_HEADING = /^### (\w+)$/gm;
 const UNRELEASED_LINK = /^\[Unreleased\]: .*$/m;
+const ENTRY_CONTINUATION = /^\s/;
 
 /**
  * Checks whether a string is one of the six Keep a Changelog category headings
@@ -88,13 +89,52 @@ function findVersionSection(content: string, version: string): { bodyStart: numb
 }
 
 /**
+ * Splits a category block's raw text into its individual `- ` entries, each entry carrying along any
+ * indented continuation lines that follow it (wrapped paragraph text, or a nested sub-list) up to the
+ * next top-level `- ` entry or the end of the block.
+ *
+ * A blank line does not by itself end an entry, since Markdown allows a blank line inside a loose list
+ * item; blank lines trailing the last continuation line are trimmed off before the entry is kept.
+ *
+ * @param text - The raw text under a `### <Heading>` line, as sliced by {@link parseCategories}.
+ * @returns Each entry's full text (its `- ` line plus any continuation lines), in source order.
+ */
+function parseEntries(text: string): string[] {
+    const entries: string[] = [];
+    let current: string[] = [];
+
+    const flush = (): void => {
+        if (current.length === 0) {
+            return;
+        }
+
+        entries.push(current.join('\n').replace(/\n+$/, ''));
+        current = [];
+    };
+
+    text.split('\n').forEach((line) => {
+        if (line.startsWith('- ')) {
+            flush();
+            current.push(line);
+        } else if (current.length > 0 && (line === '' || ENTRY_CONTINUATION.test(line))) {
+            current.push(line);
+        } else {
+            flush();
+        }
+    });
+    flush();
+
+    return entries;
+}
+
+/**
  * Parses a section body into its category blocks, preserving the order the `### <Heading>` lines
  * appear in rather than re-sorting to the canonical Keep a Changelog order.
  *
  * Headings outside the six recognized categories are left untouched rather than rejected: by the time
  * this runs, an unrecognized heading is already a convention violation upstream, not this script's job
- * to police. A recognized heading with zero `- ` entries under it is dropped entirely, since there is
- * nothing to carry forward for it.
+ * to police. A recognized heading with zero entries under it is dropped entirely, since there is nothing
+ * to carry forward for it.
  *
  * @param body - The raw text of a section body, as returned by {@link sectionBody}.
  * @returns The category blocks found in `body`, each with at least one entry, in source order.
@@ -114,10 +154,7 @@ function parseCategories(body: string): CategoryBlock[] {
         // prove that from a numeric comparison, so asserting here avoids a branch that can never be taken.
         const start = heading.index + heading[0].length;
         const end = index + 1 < headings.length ? headings[index + 1]!.index : body.length;
-        const entries = body
-            .slice(start, end)
-            .split('\n')
-            .filter((line) => line.startsWith('- '));
+        const entries = parseEntries(body.slice(start, end));
 
         if (entries.length > 0) {
             blocks.push({ heading: name, entries });
@@ -130,7 +167,7 @@ function parseCategories(body: string): CategoryBlock[] {
 /**
  * Checks whether the `## [Unreleased]` section has no entries under any of the six category headings.
  *
- * A heading with no `- ` entries under it still counts as empty; only actual entries count.
+ * A heading with no entries under it still counts as empty; only actual entries count.
  *
  * @param content - The full changelog file contents.
  * @returns `true` if Unreleased has zero entries anywhere, `false` if it has at least one.

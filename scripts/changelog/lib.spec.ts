@@ -142,6 +142,65 @@ describe('bumpChangelog', () => {
     });
 });
 
+describe('multi-line and nested entries', () => {
+    it('keeps a wrapped continuation line as part of its entry when bumping', () => {
+        const content = changelog(
+            '### Added\n\n- Added a widget with a description that\n  wraps onto a second line.\n',
+        );
+
+        const result = bumpChangelog(content, '1.0.0', '2026-08-10', 'https://example.com');
+
+        expect(result).toContain('### Added\n\n- Added a widget with a description that\n  wraps onto a second line.');
+    });
+
+    it('keeps a nested sub-list as part of its entry when bumping', () => {
+        const content = changelog(
+            '### Changed\n\n- Changed the widget API:\n  - Renamed `foo` to `bar`.\n  - Removed `baz`.\n',
+        );
+
+        const result = bumpChangelog(content, '1.0.0', '2026-08-10', 'https://example.com');
+
+        expect(result).toContain(
+            '### Changed\n\n- Changed the widget API:\n  - Renamed `foo` to `bar`.\n  - Removed `baz`.',
+        );
+    });
+
+    it('keeps a blank line inside a loose, multi-paragraph entry, trimming only the trailing one', () => {
+        const content = changelog('### Added\n\n- Added a widget.\n\n  A second paragraph for the same entry.\n');
+
+        const result = bumpChangelog(content, '1.0.0', '2026-08-10', 'https://example.com');
+
+        expect(result).toContain('### Added\n\n- Added a widget.\n\n  A second paragraph for the same entry.');
+    });
+
+    it('treats a subsequent top-level "- " line as a separate entry, not a continuation', () => {
+        const content = changelog(
+            '### Added\n\n- Added a widget with a description that\n  wraps onto a second line.\n- Added a second, unrelated widget.\n',
+        );
+
+        const result = bumpChangelog(content, '1.0.0', '2026-08-10', 'https://example.com');
+
+        expect(result).toContain(
+            '### Added\n\n- Added a widget with a description that\n  wraps onto a second line.\n- Added a second, unrelated widget.',
+        );
+    });
+
+    it('ends an entry at an unindented line that is not a new list item, dropping the stray line', () => {
+        const content = changelog('### Added\n\n- Added a widget.\nStray unindented line.\n- Added another widget.\n');
+
+        const result = bumpChangelog(content, '1.0.0', '2026-08-10', 'https://example.com');
+
+        expect(result).toContain('### Added\n\n- Added a widget.\n- Added another widget.');
+        expect(result).not.toContain('Stray unindented line.');
+    });
+
+    it('is true when a category has only indented non-list text and no "- " entries', () => {
+        const content = changelog('### Added\n\n  Just some indented text, not a list item.\n');
+
+        expect(isUnreleasedEmpty(content)).toBe(true);
+    });
+});
+
 describe('extractSection', () => {
     it('extracts a version section body without its heading line', () => {
         const content = changelog(
