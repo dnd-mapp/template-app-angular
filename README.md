@@ -19,7 +19,10 @@ pnpm install
 pnpm playwright-install-browsers
 ```
 
-Then update `package.json`'s `name` and `description`, and this README, to match the new repository.
+Then update `package.json`'s `name` and `description`, and this README, to
+match the new repository. Also reset `CHANGELOG.md`: remove this template's
+entries and leave just the header and an empty `## [Unreleased]` section, so
+the new repository starts its own history from scratch.
 
 ## Guides
 
