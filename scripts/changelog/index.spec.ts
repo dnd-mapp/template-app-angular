@@ -98,7 +98,7 @@ describe('check', () => {
         const result = runCli(['check'], dir);
 
         expect(result.status).toBe(1);
-        expect(result.stderr).toContain('The "Unreleased" section has no entries. Nothing to release.');
+        expect(result.stderr).toContain('The "Unreleased" section has no entries to release.');
     });
 
     it('exits 1 and reports when CHANGELOG.md is missing', () => {

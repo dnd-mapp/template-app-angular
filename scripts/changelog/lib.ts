@@ -14,6 +14,13 @@ const UNRELEASED_LINK = /^\[Unreleased\]: .*$/m;
 const ENTRY_CONTINUATION = /^\s/;
 
 /**
+ * The error message used whenever the `Unreleased` section has no entries to release, shared between
+ * {@link bumpChangelog} (which throws it) and the CLI's `check` command (which reports it directly), so
+ * both surfaces describe the same condition identically.
+ */
+export const UNRELEASED_EMPTY_MESSAGE = 'The "Unreleased" section has no entries to release.';
+
+/**
  * Checks whether a string is one of the six Keep a Changelog category headings
  * (`Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`).
  *
@@ -197,7 +204,7 @@ export function bumpChangelog(content: string, version: string, date: string, re
     const categories = parseCategories(content.slice(bodyStart, bodyEnd));
 
     if (categories.length === 0) {
-        throw new Error('The "Unreleased" section has no entries to release.');
+        throw new Error(UNRELEASED_EMPTY_MESSAGE);
     }
 
     const categoryBlocks = categories.map((category) => `### ${category.heading}\n\n${category.entries.join('\n')}`);

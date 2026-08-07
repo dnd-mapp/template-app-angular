@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
 import { readFileSync, writeFileSync } from 'node:fs';
-import { bumpChangelog, extractSection, isUnreleasedEmpty } from './lib.ts';
+import { bumpChangelog, extractSection, isUnreleasedEmpty, UNRELEASED_EMPTY_MESSAGE } from './lib.ts';
 
 type Result<T> = { ok: true; value: T } | { ok: false; error: string };
 
@@ -114,7 +114,7 @@ program
         if (!result.ok) {
             program.error(result.error);
         } else if (result.value) {
-            program.error('The "Unreleased" section has no entries. Nothing to release.');
+            program.error(UNRELEASED_EMPTY_MESSAGE);
         }
     });
 
