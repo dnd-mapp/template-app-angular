@@ -47,6 +47,7 @@
     "@commitlint/cli": "catalog:default",
     "@commitlint/config-conventional": "catalog:default",
     "@eslint/js": "catalog:default",
+    "@types/node": "catalog:default",
     "@vitest/browser-playwright": "catalog:default",
     "@vitest/coverage-v8": "catalog:default",
     "@vitest/ui": "catalog:default",
