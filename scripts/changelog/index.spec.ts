@@ -208,6 +208,19 @@ describe('bump', () => {
         expect(untouched).toBe(original);
     });
 
+    it('exits 1, reports, and leaves the file untouched for a malformed --repo slug', () => {
+        const original =
+            '## [Unreleased]\n\n### Added\n\n- Added a widget.\n\n[Unreleased]: https://example.com/commits/main\n';
+        const dir = tempRepo(original);
+
+        const result = runCli(['bump', '1.0.0', 'not-a-slug]'], dir);
+        const untouched = readFileSync(join(dir, CHANGELOG_PATH), 'utf8');
+
+        expect(result.status).toBe(1);
+        expect(result.stderr).toContain('must be a GitHub "owner/repo" slug');
+        expect(untouched).toBe(original);
+    });
+
     it('warns on stderr about an unrecognized heading with entries, but still bumps', () => {
         const dir = tempRepo(
             '## [Unreleased]\n\n### NotARealHeading\n\n- Something.\n\n### Added\n\n- Added a widget.\n\n[Unreleased]: https://example.com/commits/main\n',

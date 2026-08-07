@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { Command } from 'commander';
+import { Command, InvalidArgumentError } from 'commander';
 import { readFileSync, writeFileSync } from 'node:fs';
 import {
     bumpChangelog,
@@ -82,6 +82,25 @@ function readChangelog(): string {
     }
 }
 
+const REPO_SLUG = /^[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?\/[A-Za-z0-9._-]+$/;
+
+/**
+ * Commander argument parser for `<repo>`: validates it looks like a GitHub `owner/repo` slug before it's
+ * interpolated into the release URL written to `CHANGELOG.md`, so a malformed value (e.g. containing `]`
+ * or whitespace) is rejected up front instead of silently producing a broken Markdown link.
+ *
+ * @param value - The raw `<repo>` argument as passed on the command line.
+ * @returns `value` unchanged, once validated.
+ * @throws {InvalidArgumentError} If `value` doesn't look like an `owner/repo` slug.
+ */
+function parseRepoSlug(value: string): string {
+    if (!REPO_SLUG.test(value)) {
+        throw new InvalidArgumentError('must be a GitHub "owner/repo" slug, e.g. dnd-mapp/template-app-angular.');
+    }
+
+    return value;
+}
+
 /**
  * Prints a warning to stderr for every unrecognized `### ` heading in Unreleased that has entries under
  * it (per {@link findUnrecognizedHeadings}), since {@link bumpChangelog} and {@link isUnreleasedEmpty}
@@ -108,7 +127,11 @@ program
     .command('bump')
     .description('Move Unreleased entries into a new dated version section.')
     .argument('<version>', 'version being released, e.g. 1.2.0')
-    .argument('<repo>', 'GitHub owner/repo slug the release link points at, e.g. dnd-mapp/template-app-angular')
+    .argument(
+        '<repo>',
+        'GitHub owner/repo slug the release link points at, e.g. dnd-mapp/template-app-angular',
+        parseRepoSlug,
+    )
     .option('-t, --timezone <tz>', 'IANA timezone to compute the release date in', 'Europe/Amsterdam')
     .action((version: string, repo: string, options: { timezone: string }) => {
         const result = tryCatch(() => {
