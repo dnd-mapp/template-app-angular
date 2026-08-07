@@ -146,6 +146,8 @@ program
 
         if (!result.ok) {
             program.error(result.error);
+
+            return;
         }
     });
 
@@ -187,7 +189,11 @@ program
 
         if (!result.ok) {
             program.error(result.error);
-        } else if (result.value) {
+
+            return;
+        }
+
+        if (result.value) {
             program.error(UNRELEASED_EMPTY_MESSAGE);
         }
     });
