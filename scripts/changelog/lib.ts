@@ -140,20 +140,22 @@ function parseEntries(text: string): string[] {
  *
  * Headings outside the six recognized categories are left untouched rather than rejected: by the time
  * this runs, an unrecognized heading is already a convention violation upstream, not this script's job
- * to police. A recognized heading with zero entries under it is dropped entirely, since there is nothing
- * to carry forward for it.
+ * to police. Callers surface it as a warning instead, via {@link findUnrecognizedHeadings}. A recognized
+ * heading with zero entries under it is dropped entirely, since there is nothing to carry forward for it.
  *
  * @param body - The raw text of a section body, as returned by {@link sectionBody}.
- * @returns The category blocks found in `body`, each with at least one entry, in source order.
+ * @returns The category blocks found in `body`, each with at least one entry, in source order, plus the
+ * name of every unrecognized heading that has at least one entry under it, in source order.
  */
-function parseCategories(body: string): CategoryBlock[] {
+function parseCategories(body: string): { blocks: CategoryBlock[]; unrecognized: string[] } {
     const blocks: CategoryBlock[] = [];
+    const unrecognized: string[] = [];
     const headings = [...body.matchAll(CATEGORY_HEADING)];
 
     headings.forEach((heading, index) => {
         const name = heading[1];
 
-        if (!name || !isChangeHeading(name)) {
+        if (!name) {
             return;
         }
 
@@ -163,12 +165,18 @@ function parseCategories(body: string): CategoryBlock[] {
         const end = index + 1 < headings.length ? headings[index + 1]!.index : body.length;
         const entries = parseEntries(body.slice(start, end));
 
-        if (entries.length > 0) {
+        if (entries.length === 0) {
+            return;
+        }
+
+        if (isChangeHeading(name)) {
             blocks.push({ heading: name, entries });
+        } else if (!unrecognized.includes(name)) {
+            unrecognized.push(name);
         }
     });
 
-    return blocks;
+    return { blocks, unrecognized };
 }
 
 /**
@@ -183,7 +191,24 @@ function parseCategories(body: string): CategoryBlock[] {
 export function isUnreleasedEmpty(content: string): boolean {
     const { bodyStart, bodyEnd } = findUnreleasedSection(content);
 
-    return parseCategories(content.slice(bodyStart, bodyEnd)).length === 0;
+    return parseCategories(content.slice(bodyStart, bodyEnd)).blocks.length === 0;
+}
+
+/**
+ * Finds `### `-style headings in the `## [Unreleased]` section that aren't one of the six recognized
+ * Keep a Changelog headings (`Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`) but still
+ * have at least one entry under them. {@link bumpChangelog} silently drops those entries, since it isn't
+ * this script's job to police the heading itself — this lets a caller warn about it instead, so a typo'd
+ * or miscapitalized heading doesn't lose its entries with no feedback to anyone.
+ *
+ * @param content - The full changelog file contents.
+ * @returns Each unrecognized heading's name, in source order, deduplicated.
+ * @throws {Error} If no `## [Unreleased]` heading is found in `content`.
+ */
+export function findUnrecognizedHeadings(content: string): string[] {
+    const { bodyStart, bodyEnd } = findUnreleasedSection(content);
+
+    return parseCategories(content.slice(bodyStart, bodyEnd)).unrecognized;
 }
 
 /**
@@ -201,13 +226,13 @@ export function isUnreleasedEmpty(content: string): boolean {
  */
 export function bumpChangelog(content: string, version: string, date: string, releaseUrl: string): string {
     const { bodyStart, bodyEnd } = findUnreleasedSection(content);
-    const categories = parseCategories(content.slice(bodyStart, bodyEnd));
+    const { blocks } = parseCategories(content.slice(bodyStart, bodyEnd));
 
-    if (categories.length === 0) {
+    if (blocks.length === 0) {
         throw new Error(UNRELEASED_EMPTY_MESSAGE);
     }
 
-    const categoryBlocks = categories.map((category) => `### ${category.heading}\n\n${category.entries.join('\n')}`);
+    const categoryBlocks = blocks.map((category) => `### ${category.heading}\n\n${category.entries.join('\n')}`);
     const versionSection = [`## [${version}] - ${date}`, ...categoryBlocks].join('\n\n');
 
     const before = content.slice(0, bodyStart);

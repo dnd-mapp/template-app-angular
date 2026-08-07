@@ -111,6 +111,19 @@ describe('check', () => {
         expect(result.status).toBe(1);
         expect(result.stderr).toContain('No CHANGELOG.md found in the current working directory.');
     });
+
+    it('warns on stderr about an unrecognized heading with entries, but still exits 0', () => {
+        const dir = tempRepo(
+            '## [Unreleased]\n\n### NotARealHeading\n\n- Something.\n\n### Added\n\n- Added a widget.\n\n[Unreleased]: https://example.com/commits/main\n',
+        );
+
+        const result = runCli(['check'], dir);
+
+        expect(result.status).toBe(0);
+        expect(result.stderr).toContain(
+            '"### NotARealHeading" is not a recognized Keep a Changelog heading; its entries will be dropped.',
+        );
+    });
 });
 
 describe('extract', () => {
@@ -193,5 +206,18 @@ describe('bump', () => {
         expect(result.status).toBe(1);
         expect(result.stderr).toContain('The "Unreleased" section has no entries to release.');
         expect(untouched).toBe(original);
+    });
+
+    it('warns on stderr about an unrecognized heading with entries, but still bumps', () => {
+        const dir = tempRepo(
+            '## [Unreleased]\n\n### NotARealHeading\n\n- Something.\n\n### Added\n\n- Added a widget.\n\n[Unreleased]: https://example.com/commits/main\n',
+        );
+
+        const result = runCli(['bump', '1.0.0', 'acme/repo'], dir);
+
+        expect(result.status).toBe(0);
+        expect(result.stderr).toContain(
+            '"### NotARealHeading" is not a recognized Keep a Changelog heading; its entries will be dropped.',
+        );
     });
 });

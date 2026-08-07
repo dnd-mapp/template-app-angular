@@ -21,5 +21,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Added a README to the `scripts/changelog` package, documenting its commands and usage.
 - Added a `--timezone` option to the `scripts/changelog` CLI's `bump` command, an IANA timezone name that controls which calendar day a release is dated on, defaulting to `Europe/Amsterdam`.
 - Added CI typechecking (`pnpm --if-present -r run typecheck`) and extended the existing lint/test steps to run across every workspace package, not just the Angular app.
+- Added a warning on stderr from the `scripts/changelog` CLI's `bump`/`check` commands when `Unreleased` has an unrecognized category heading with entries under it, so a typo'd or miscapitalized heading doesn't silently drop its entries on release.
 
 [Unreleased]: https://github.com/dnd-mapp/template-app-angular/commits/main

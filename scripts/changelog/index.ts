@@ -1,7 +1,13 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
 import { readFileSync, writeFileSync } from 'node:fs';
-import { bumpChangelog, extractSection, isUnreleasedEmpty, UNRELEASED_EMPTY_MESSAGE } from './lib.ts';
+import {
+    bumpChangelog,
+    extractSection,
+    findUnrecognizedHeadings,
+    isUnreleasedEmpty,
+    UNRELEASED_EMPTY_MESSAGE,
+} from './lib.ts';
 
 type Result<T> = { ok: true; value: T } | { ok: false; error: string };
 
@@ -76,6 +82,21 @@ function readChangelog(): string {
     }
 }
 
+/**
+ * Prints a warning to stderr for every unrecognized `### ` heading in Unreleased that has entries under
+ * it (per {@link findUnrecognizedHeadings}), since {@link bumpChangelog} and {@link isUnreleasedEmpty}
+ * silently drop those entries rather than failing outright.
+ *
+ * @param content - The full changelog file contents.
+ */
+function warnUnrecognizedHeadings(content: string): void {
+    findUnrecognizedHeadings(content).forEach((heading) => {
+        console.error(
+            `Warning: "### ${heading}" is not a recognized Keep a Changelog heading; its entries will be dropped.`,
+        );
+    });
+}
+
 const program = new Command('changelog').description('Keep a Changelog release automation.');
 
 /**
@@ -91,9 +112,13 @@ program
     .option('-t, --timezone <tz>', 'IANA timezone to compute the release date in', 'Europe/Amsterdam')
     .action((version: string, repo: string, options: { timezone: string }) => {
         const result = tryCatch(() => {
+            const content = readChangelog();
+
+            warnUnrecognizedHeadings(content);
+
             const releaseUrl = `https://github.com/${repo}/releases/tag/v${version}`;
 
-            writeFileSync(CHANGELOG_PATH, bumpChangelog(readChangelog(), version, today(options.timezone), releaseUrl));
+            writeFileSync(CHANGELOG_PATH, bumpChangelog(content, version, today(options.timezone), releaseUrl));
         });
 
         if (!result.ok) {
@@ -129,7 +154,13 @@ program
     .command('check')
     .description('Exit non-zero if Unreleased has no entries.')
     .action(() => {
-        const result = tryCatch(() => isUnreleasedEmpty(readChangelog()));
+        const result = tryCatch(() => {
+            const content = readChangelog();
+
+            warnUnrecognizedHeadings(content);
+
+            return isUnreleasedEmpty(content);
+        });
 
         if (!result.ok) {
             program.error(result.error);

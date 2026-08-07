@@ -1,4 +1,4 @@
-import { bumpChangelog, extractSection, isUnreleasedEmpty } from './lib.ts';
+import { bumpChangelog, extractSection, findUnrecognizedHeadings, isUnreleasedEmpty } from './lib.ts';
 
 const PREAMBLE = `# Changelog
 
@@ -198,6 +198,38 @@ describe('multi-line and nested entries', () => {
         const content = changelog('### Added\n\n  Just some indented text, not a list item.\n');
 
         expect(isUnreleasedEmpty(content)).toBe(true);
+    });
+});
+
+describe('findUnrecognizedHeadings', () => {
+    it('is empty when every heading is a recognized one', () => {
+        const content = changelog('### Added\n\n- Added a widget.\n\n### Fixed\n\n- Fixed a bug.\n');
+
+        expect(findUnrecognizedHeadings(content)).toEqual([]);
+    });
+
+    it('is empty when an unrecognized heading has no entries under it', () => {
+        const content = changelog('### NotARealHeading\n');
+
+        expect(findUnrecognizedHeadings(content)).toEqual([]);
+    });
+
+    it('names an unrecognized heading that has at least one entry under it', () => {
+        const content = changelog('### NotARealHeading\n\n- Something.\n');
+
+        expect(findUnrecognizedHeadings(content)).toEqual(['NotARealHeading']);
+    });
+
+    it('names each distinct unrecognized heading once, in source order', () => {
+        const content = changelog(
+            '### NotARealHeading\n\n- Something.\n\n### Added\n\n- Added a widget.\n\n### AlsoNotReal\n\n- Another.\n\n### NotARealHeading\n\n- More.\n',
+        );
+
+        expect(findUnrecognizedHeadings(content)).toEqual(['NotARealHeading', 'AlsoNotReal']);
+    });
+
+    it('throws when no "## [Unreleased]" section exists', () => {
+        expect(() => findUnrecognizedHeadings(PREAMBLE)).toThrow('No "## [Unreleased]" section found.');
     });
 });
 
